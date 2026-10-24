@@ -90,6 +90,7 @@ function onOpen() {
     .addItem('ربط مجموعة Telegram', 'linkTelegram')
     .addItem('إرسال تجريبي لتقرير الوجبة الحالية', 'sendTestReport')
     .addItem('تفعيل الإرسال التلقائي', 'enableAutoSend')
+    .addItem('استيراد تقارير تشرين الأول الورقية', 'importOctoberMenu')
     .addToUi();
 }
 
@@ -159,7 +160,7 @@ function doGet(e) {
 // تستقبل {fn, args} وترجع {ok, result} أو {ok:false, error}، دون حاجة لحساب Google في المتصفح
 const API = {
   listUsers, login, getDepartments, saveMovements, getShiftSummary, getWashCounts, addWash, undoWash,
-  getInventory, saveInventory, previewReport, setLateMode, getMode, getDashboard
+  getInventory, saveInventory, previewReport, setLateMode, getMode, getDashboard, importStatus
 };
 
 function doPost(e) {
@@ -420,11 +421,14 @@ const INV_FIELDS = [
   { key: 'وسائد جاهزة', type: 'نهاية', label: 'الوسائد الجاهزة', hint: '', nightOnly: true },
   { key: 'خزن وسائد ليلي', type: 'نهاية', label: 'خزن الوسائد الليلي', hint: '' },
   { key: 'شراشف المخزن الداخلي', type: 'نهاية', label: 'الشراشف في المخزن الداخلي', hint: 'اختياري' },
+  { key: 'شراشف مكوية', type: 'نهاية', label: 'الشراشف المكوية في هذه الوجبة', hint: 'اختياري', dayOnly: true },
+  { key: 'بطانيات المخزن الداخلي', type: 'نهاية', label: 'البطانيات في المخزن الداخلي', hint: 'اختياري', dayOnly: true },
+  { key: 'وسائد المخزن الداخلي', type: 'نهاية', label: 'الوسائد في المخزن الداخلي', hint: 'اختياري', dayOnly: true },
   { key: 'بطانيات متسخة مستلمة', type: 'بداية', label: 'البطانيات المتسخة المستلمة من الوجبة السابقة', hint: 'اختياري: تُعدّ عند غسلها' }
 ];
 
 function invFields_(night) {
-  return INV_FIELDS.filter(f => night || !f.nightOnly);
+  return INV_FIELDS.filter(f => night ? !f.dayOnly : !f.nightOnly);
 }
 
 function getInventory(token) {
@@ -575,7 +579,11 @@ function getDashboard(token, from, to) {
   const is = (item, type, dept) => r => r[5] === item && r[3] === type && (!dept || r[4] === dept);
 
   // المتراكم المتسخ (تقدير، منذ بداية السجل): البطانيات الواردة − غسلات البطانيات × سعة الغسلة
-  const dirty = Math.max(0, sum(mvAll, is('بطانية', 'وارد')) - wsAll.length * perWash);
+  // التقارير الورقية المستوردة لا تذكر البطانيات الواردة، فتُستثنى غسلاتها من هذا الحساب
+  const live = r => r[r.length === 5 ? 4 : 8] !== IMPORT_TAG;
+  const dirty = Math.max(0, sum(mvAll.filter(live), is('بطانية', 'وارد')) - wsAll.filter(live).length * perWash);
+  const importedShift = {};
+  shAll.forEach(r => { if (r[4] === IMPORT_TAG) importedShift[r[0]] = true; });
 
   // السلسلة اليومية
   const days = [], byDay = {};
@@ -596,7 +604,7 @@ function getDashboard(token, from, to) {
   const washers = { 1: 0, 2: 0, 3: 0 };
   ws.forEach(r => { washers[Number(r[3])] = (washers[Number(r[3])] || 0) + 1; });
   const groupOf = {};
-  shAll.forEach(r => { groupOf[r[0]] = r[3] || 'غير محدد'; });
+  shAll.forEach(r => { groupOf[r[0]] = r[4] === IMPORT_TAG ? 'تقارير ورقية' : (r[3] || 'غير محدد'); });
   const groups = {};
   ws.forEach(r => { const g = groupOf[r[1]] || 'غير محدد'; groups[g] = (groups[g] || 0) + 1; });
 
@@ -633,7 +641,7 @@ function getDashboard(token, from, to) {
   // فروق الجرد: البطانيات الجاهزة المتوقعة = جاهز الوجبة السابقة + غسلات الوجبة × السعة − صادر البطانيات
   const prevId = id => id.slice(-1) === 'N' ? dateOf(id) + '-D'
     : day(new Date(new Date(dateOf(id) + 'T12:00:00+03:00').getTime() - 864e5)) + '-N';
-  const diffs = shiftIds.filter(inRange).map(id => {
+  const diffs = shiftIds.filter(id => inRange(id) && !importedShift[id]).map(id => { // الورقي بلا صادر بطانيات
     const prev = invBy[prevId(id)], cur = invBy[id];
     if (!prev || prev['بطانيات جاهزة'] === undefined || cur['بطانيات جاهزة'] === undefined) return null;
     const washes = wsAll.filter(r => r[1] === id).length;
@@ -673,6 +681,7 @@ function getDashboard(token, from, to) {
       sheetsOut: sum(mv, r => r[5] === 'شرشف' && r[3] === 'صادر'),
       sheetWashesEst: Math.round(sheetsIn / sheetsPerWash),
       suitsOut: sum(mv, r => r[5] === 'بدلة عمليات' && r[3] === 'صادر'),
+      ironed: invAll.filter(r => inRange(r[1]) && r[3] === 'شراشف مكوية').reduce((a, r) => a + (Number(r[4]) || 0), 0),
       reportsSent: due.filter(r => r.status === 'sent').length,
       reportsDue: due.length
     },
@@ -826,6 +835,10 @@ function remind_(now, since) {
 // يعمل كل 5 دقائق: التذكيرات، ثم إذا انتهت الوجبة السابقة ومضت دقائق الإرسال يقفلها ويرسل تقريرها مرة واحدة
 function autoSend() {
   const now = new Date();
+  // تشغيل لمرة واحدة: استيراد التقارير الورقية إن لم يُستورد بعد
+  if (!PropertiesService.getScriptProperties().getProperty(IMPORT_KEY)) {
+    try { importOctober(); } catch (e) { console.error('الاستيراد: ' + e.message); }
+  }
   const sinceStart = sinceShiftStart_(now);
   try { remind_(now, sinceStart); } catch (e) { console.error('التذكير: ' + e.message); }
   if (sinceStart < Number(setting_('دقائق الإرسال بعد نهاية الوجبة', 5))) return;

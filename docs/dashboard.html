@@ -580,7 +580,7 @@
       ['غسلات الشراشف (تقدير)', k.sheetWashesEst, 'كل 60 شرشفاً = غسلة'],
       ['بدلات العمليات المجهّزة', k.suitsOut, 'صادر إلى صالات العمليات'],
       ['انتظام التقارير', rate == null ? '—' : rate + '%', fmtN(k.reportsSent) + ' من ' + fmtN(k.reportsDue) + ' وجبة'],
-      ['شراشف العنايات', data.icu.reduce((a, x) => a + x.out, 0), 'وارد ' + fmtN(data.icu.reduce((a, x) => a + x.in, 0))],
+      ['الشراشف المكوية', k.ironed, 'حسب جرد الوجبات الصباحية'],
       ['فروق الجرد', data.diffs.filter(d => d.diff !== 0).length, 'وجبة بفرق من ' + fmtN(data.diffs.length) + ' وجبة مقارنة']
     ];
     $('tiles').innerHTML = tiles.map(t => '<div class="tile"><div class="k">' + t[0] + '</div><div class="v">'
@@ -599,6 +599,7 @@
     ]), () => table($('inDaily'), ['اليوم', 'شراشف', 'بطانيات'], data.days.map(d => [d.date, d.sheetsIn, d.blanketsIn])));
 
     const wCats = ['غسالة 1', 'غسالة 2', 'غسالة 3'], wVals = [1, 2, 3].map(w => data.washers[w] || 0);
+    if (data.washers[0]) { wCats.push('غير محدد (ورقي)'); wVals.push(data.washers[0]); } // التقارير الورقية لا تذكر الغسالة
     draw('washers', () => hbars($('washers'), wCats, [{ name:'غسلات', color:'var(--s1)', values:wVals }]),
       () => table($('washers'), ['الغسالة', 'الغسلات'], wCats.map((c, i) => [c, wVals[i]])));
 
@@ -799,7 +800,7 @@
       ['غسلات الشراشف (تقدير)', k.sheetWashesEst, 'كل 60 شرشفاً = غسلة'],
       ['بدلات العمليات', k.suitsOut, 'صادر إلى صالات العمليات'],
       ['انتظام التقارير', rate, fmtN(cnt('sent')) + ' من ' + fmtN(due.length) + ' وجبة'],
-      ['المتسخ المتراكم (تقدير)', d.dirty, 'بطانية حتى تاريخ الإصدار'],
+      ['الشراشف المكوية', k.ironed, 'حسب جرد الوجبات الصباحية'],
       ['فروق الجرد', d.diffs.filter(x => x.diff !== 0).length, 'وجبة بفرق من ' + fmtN(d.diffs.length)]
     ];
 
@@ -839,7 +840,8 @@
       + '<div class="legend"><span><i style="background:#2a78d6"></i>صباحية</span><span><i style="background:#eb6834"></i>ليلية</span>'
       + '<span>أعلى ' + (yearly ? 'شهر' : 'يوم') + ': ' + esc(busiest) + '</span></div>'
       + '<div class="chart" id="rChart"></div>'
-      + '<div class="two" style="margin-top:10px"><div>' + rTable(['الغسالة', 'الغسلات'], [1, 2, 3].map(w => ['غسالة ' + w, d.washers[w] || 0]), ['المجموع', k.washes])
+      + '<div class="two" style="margin-top:10px"><div>' + rTable(['الغسالة', 'الغسلات'], [1, 2, 3].map(w => ['غسالة ' + w, d.washers[w] || 0])
+        .concat(d.washers[0] ? [['غير محدد (تقارير ورقية)', d.washers[0]]] : []), ['المجموع', k.washes])
       + '</div><div>' + rTable(['المجموعة', 'الغسلات'], Object.keys(d.groups).sort().map(g => [esc(g), d.groups[g]])) + '</div></div></section>'
 
       + '<section><h3>3. الحركة حسب الصنف</h3>' + rTable(['الصنف', 'الصادر (نظيف)', 'الوارد (متسخ)'],
