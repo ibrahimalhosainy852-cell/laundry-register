@@ -299,7 +299,8 @@
 
     <div class="card wide">
       <div class="chead"><div><h2>فروق جرد البطانيات الجاهزة</h2>
-        <div class="desc">المتوقع = جاهز الوجبة السابقة + الغسلات × 6 − الصادر. يظهر الفرق حين يُسجَّل جرد وجبتين متتاليتين.</div></div></div>
+        <div class="desc">المتوقع = جاهز الوجبة السابقة + الغسلات × 6 − البطانيات الصادرة. يُحسب للوجبات المسجّلة في التطبيق فقط،
+          لأن التقارير الورقية المستوردة لا تذكر البطانيات الصادرة.</div></div></div>
       <div id="diffs" class="tscroll"></div>
     </div>
   </div>
@@ -654,7 +655,8 @@
         esc(r.recorder || '—'), esc(r.group || '—'), r.sentAt || '—'])));
 
     // فروق الجرد
-    $('diffs').innerHTML = data.diffs.length ? '' : '<div class="empty">لا توجد وجبات متتالية مسجّل جردها في هذه الفترة</div>';
+    $('diffs').innerHTML = data.diffs.length ? '' : '<div class="empty">لا توجد فروق محسوبة في هذه الفترة: '
+      + 'الوجبات المستوردة من التقارير الورقية لا تُحسب، والفرق يحتاج جرد وجبتين متتاليتين مسجّلتين في التطبيق.</div>';
     if (data.diffs.length) table($('diffs'), ['الوجبة', 'المدوّن', 'المتوقع', 'الفعلي', 'الفرق', 'الحالة'],
       data.diffs.slice().reverse().map(d => {
         const a = Math.abs(d.diff);
@@ -862,7 +864,8 @@
         d.store.map(s => [esc(s.label), s.last == null ? '—' : s.last, s.lastShift ? shiftLabel(s.lastShift) : 'لم يُسجَّل']))
       + (diffsTop.length ? '<div style="margin-top:8px">' + rTable(['الوجبة', 'المدوّن', 'المتوقع', 'الفعلي', 'الفرق'],
         diffsTop.map(x => [shiftLabel(x.shift), esc(x.recorder || '—'), x.expected, x.actual, signed(x.diff)])) + '</div>'
-        : '<div class="rs" style="margin-top:6px">لا توجد فروق في جرد البطانيات الجاهزة خلال الفترة.</div>') + '</section>'
+        : '<div class="rs" style="margin-top:6px">لا توجد فروق محسوبة خلال الفترة. لا تُحسب الفروق للوجبات المستوردة من التقارير الورقية '
+          + 'لأنها لا تذكر البطانيات الصادرة، وتُحسب للوجبات المسجّلة في التطبيق حين يُسجَّل جرد وجبتين متتاليتين.</div>') + '</section>'
 
       + '<section><h3>8. انتظام التقارير</h3>' + rTable(['أُرسل', 'وجبة فارغة', 'لم يُرسل', 'نسبة الانتظام'],
         [[cnt('sent'), cnt('empty'), cnt('missing'), rate]])
