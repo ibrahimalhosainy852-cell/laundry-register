@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<style>
+  :root {
+    color-scheme: light;
+    --page:#f4f6f9; --surface:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
+    --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,.10); --wash:rgba(31,58,95,.06);
+    --brand:#1f3a5f; --brand2:#2c5282; --on-brand:#fff;
+    --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
+    --good:#0ca30c; --good-ink:#006300; --warning:#fab219; --serious:#ec835a; --critical:#d03b3b;
+    --shadow:0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page:#0d0d0d; --surface:#1a1a19; --ink:#f0efec; --ink2:#c3c2b7; --muted:#898781;
+      --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10); --wash:rgba(255,255,255,.05);
+      --brand:#13263f; --brand2:#1f3a5f;
+      --s1:#3987e5; --s2:#d95926; --s3:#199e70; --good-ink:#0ca30c;
+      --shadow:none;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page:#0d0d0d; --surface:#1a1a19; --ink:#f0efec; --ink2:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10); --wash:rgba(255,255,255,.05);
+    --brand:#13263f; --brand2:#1f3a5f;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --good-ink:#0ca30c;
+    --shadow:none;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--page); color:var(--ink); font-family:"Segoe UI", Tahoma, system-ui, sans-serif; font-size:14px; }
+  button, input, select { font-family:inherit; font-size:inherit; color:inherit; }
+
+  header { background:linear-gradient(135deg, var(--brand), var(--brand2)); color:var(--on-brand); }
+  .bar { max-width:1280px; margin:0 auto; padding:18px 16px; display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .bar h1 { margin:0; font-size:20px; font-weight:700; }
+  .bar .sub { font-size:13px; opacity:.8; margin-top:2px; }
+  .bar .sp { flex:1; }
+  .hbtn { background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.25); color:#fff; border-radius:8px; padding:7px 12px; cursor:pointer; }
+  .hbtn:hover { background:rgba(255,255,255,.2); }
+  .upd { font-size:12px; opacity:.8; }
+
+  main { max-width:1280px; margin:0 auto; padding:16px; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; box-shadow:var(--shadow); min-width:0; }
+  .card h2 { margin:0; font-size:15px; font-weight:700; }
+  .card .desc { color:var(--ink2); font-size:12.5px; margin-top:3px; }
+  .chead { display:flex; align-items:flex-start; gap:8px; margin-bottom:12px; }
+  .chead > div:first-child { flex:1; min-width:0; }
+  .tbtn { border:1px solid var(--border); background:transparent; border-radius:7px; padding:4px 9px; font-size:12px; color:var(--ink2); cursor:pointer; white-space:nowrap; }
+  .tbtn:hover, .tbtn[aria-pressed="true"] { background:var(--wash); color:var(--ink); }
+
+  /* الدخول */
+  #login { max-width:380px; margin:48px auto; }
+  #login label { display:block; margin:14px 0 6px; color:var(--ink2); }
+  #login select, #login input { width:100%; padding:12px; border:1px solid var(--axis); border-radius:10px; background:var(--surface); font-size:16px; }
+  .btn { width:100%; margin-top:18px; padding:13px; border:0; border-radius:10px; background:var(--brand); color:#fff; font-size:16px; font-weight:700; cursor:pointer; }
+  .msg { margin-top:12px; min-height:20px; color:var(--critical); }
+
+  /* المرشحات */
+  .filters { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:16px; }
+  .chip { border:1px solid var(--border); background:var(--surface); border-radius:999px; padding:7px 14px; cursor:pointer; }
+  .chip:hover { background:var(--wash); }
+  .chip[aria-pressed="true"] { background:var(--brand); border-color:var(--brand); color:#fff; }
+  .filters input[type=date] { border:1px solid var(--border); background:var(--surface); border-radius:8px; padding:6px 8px; }
+  .filters .lbl { color:var(--ink2); font-size:13px; }
+
+  /* الأرقام */
+  .top { display:grid; grid-template-columns:minmax(260px, 1fr) 2.4fr; gap:16px; margin-bottom:16px; }
+  .hero .k { color:var(--ink2); font-size:13px; }
+  .hero .v { font-size:56px; font-weight:700; line-height:1.1; margin:8px 0 4px; }
+  .hero .v small { font-size:16px; font-weight:400; color:var(--ink2); margin-inline-start:6px; }
+  .hero .note { color:var(--ink2); font-size:12.5px; line-height:1.6; }
+  .meter { height:8px; border-radius:4px; background:var(--grid); margin-top:14px; overflow:hidden; }
+  .meter > span { display:block; height:100%; border-radius:4px; }
+  .tiles { display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; }
+  .tile { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px; box-shadow:var(--shadow); }
+  .tile .k { color:var(--ink2); font-size:12.5px; }
+  .tile .v { font-size:26px; font-weight:700; margin-top:6px; }
+  .tile .d { color:var(--muted); font-size:12px; margin-top:2px; }
+
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+  .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:16px; }
+  .wide { margin-bottom:16px; }
+
+  .legend { display:flex; flex-wrap:wrap; gap:14px; font-size:12.5px; color:var(--ink2); margin:-4px 0 8px; }
+  .legend i { display:inline-block; width:10px; height:10px; border-radius:3px; margin-inline-end:6px; vertical-align:-1px; }
+  .chart { position:relative; width:100%; }
+  .chart svg { display:block; width:100%; overflow:visible; direction:ltr; } /* المواضع محسوبة يدوياً من اليمين */
+  .chart text { font-family:inherit; }
+  .empty { color:var(--muted); text-align:center; padding:36px 0; }
+
+  #tip { position:fixed; pointer-events:none; z-index:10; background:var(--surface); color:var(--ink); border:1px solid var(--border);
+    border-radius:10px; padding:8px 10px; font-size:12.5px; box-shadow:0 4px 16px rgba(0,0,0,.14); min-width:120px; display:none; }
+  #tip .t { font-weight:700; margin-bottom:4px; }
+  #tip .r { display:flex; align-items:center; gap:8px; justify-content:space-between; }
+  #tip .r i { display:inline-block; width:8px; height:8px; border-radius:2px; margin-inline-end:6px; }
+  #tip .r b { font-variant-numeric:tabular-nums; }
+
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th, td { padding:8px 6px; border-bottom:1px solid var(--grid); text-align:center; }
+  th { color:var(--ink2); font-weight:600; font-size:12px; }
+  td { font-variant-numeric:tabular-nums; }
+  td:first-child, th:first-child { text-align:right; }
+  .tscroll { max-height:320px; overflow:auto; }
+
+  .chips { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+  .chips .chip { padding:4px 11px; font-size:12.5px; }
+
+  .badge { display:inline-flex; align-items:center; gap:5px; font-size:12px; color:var(--ink); }
+  .badge i { font-style:normal; width:16px; height:16px; border-radius:50%; display:inline-grid; place-items:center; font-size:10px; color:#fff; font-weight:700; }
+
+  .cal { display:flex; flex-direction:row; gap:4px; overflow-x:auto; padding-bottom:6px; }
+  .cal .col { display:flex; flex-direction:column; gap:4px; align-items:center; min-width:30px; }
+  .cal .cell { width:28px; height:28px; border-radius:6px; display:grid; place-items:center; font-size:12px; color:#fff; font-weight:700; cursor:default; }
+  .cal .dl { font-size:10.5px; color:var(--muted); }
+  .cal .rl { font-size:11px; color:var(--ink2); height:28px; display:grid; place-items:center; }
+
+  .mini { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; }
+  .mini .tile .v { font-size:22px; }
+  .bal { font-weight:700; }
+
+  .hidden { display:none !important; }
+  @media (max-width: 1000px) {
+    .top { grid-template-columns:1fr; }
+    .tiles { grid-template-columns:repeat(2, 1fr); }
+    .grid2, .grid3 { grid-template-columns:1fr; }
+  }
+  @media (max-width: 420px) {
+    .hero .v { font-size:48px; }
+    .tile .v { font-size:22px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div>
+      <h1>لوحة متابعة وحدة اللوندري</h1>
+      <div class="sub">مستشفى الكفيل التخصصي — سجل المنسوجات الرقمي</div>
+    </div>
+    <div class="sp"></div>
+    <span class="upd" id="upd"></span>
+    <button class="hbtn hidden" id="refreshBtn" onclick="load()">تحديث</button>
+    <button class="hbtn" id="themeBtn" onclick="toggleTheme()" aria-label="تبديل الوضع الليلي">◐</button>
+    <button class="hbtn hidden" id="logoutBtn" onclick="logout()">خروج</button>
+  </div>
+</header>
+
+<main>
+  <!-- الدخول -->
+  <div id="login" class="card">
+    <h2 style="font-size:18px">دخول المسؤول</h2>
+    <label for="name">الاسم</label>
+    <select id="name"><option value="">جارٍ التحميل...</option></select>
+    <label for="pin">الرمز السري</label>
+    <input id="pin" type="password" inputmode="numeric" maxlength="4" autocomplete="off">
+    <button class="btn" id="loginBtn" onclick="doLogin()">دخول</button>
+    <div class="msg" id="loginMsg"></div>
+  </div>
+
+  <div id="dash" class="hidden">
+    <div class="filters" id="filters">
+      <button class="chip" data-p="today">اليوم</button>
+      <button class="chip" data-p="7">آخر 7 أيام</button>
+      <button class="chip" data-p="30">آخر 30 يوماً</button>
+      <button class="chip" data-p="month">هذا الشهر</button>
+      <span class="lbl">من</span><input type="date" id="from">
+      <span class="lbl">إلى</span><input type="date" id="to">
+      <span class="msg" id="dashMsg" style="margin:0"></span>
+    </div>
+
+    <div class="top">
+      <div class="card hero">
+        <div class="k">المتسخ المتراكم من البطانيات (تقدير)</div>
+        <div class="v" id="dirty">—</div>
+        <div class="note" id="dirtyNote"></div>
+        <div class="meter"><span id="dirtyMeter"></span></div>
+      </div>
+      <div class="tiles" id="tiles"></div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <div class="chead"><div><h2>غسلات البطانيات يومياً</h2><div class="desc">حسب الوجبة — كل غسلة 6 بطانيات</div></div>
+          <button class="tbtn" data-t="washDaily">جدول</button></div>
+        <div class="legend"><span><i style="background:var(--s1)"></i>صباحية</span><span><i style="background:var(--s2)"></i>ليلية</span></div>
+        <div class="chart" id="washDaily"></div>
+      </div>
+      <div class="card">
+        <div class="chead"><div><h2>الوارد المتسخ يومياً</h2><div class="desc">عدد القطع الواردة من كل الجهات</div></div>
+          <button class="tbtn" data-t="inDaily">جدول</button></div>
+        <div class="legend"><span><i style="background:var(--s1)"></i>شراشف</span><span><i style="background:var(--s2)"></i>بطانيات</span></div>
+        <div class="chart" id="inDaily"></div>
+      </div>
+    </div>
+
+    <div class="grid3">
+      <div class="card">
+        <div class="chead"><div><h2>الغسلات لكل غسالة</h2><div class="desc">توزيع الحمل على الغسالات الثلاث</div></div>
+          <button class="tbtn" data-t="washers">جدول</button></div>
+        <div class="chart" id="washers"></div>
+      </div>
+      <div class="card">
+        <div class="chead"><div><h2>الغسلات حسب المجموعة</h2><div class="desc">صباحية أ/ب، ليلية أ/ب</div></div>
+          <button class="tbtn" data-t="groups">جدول</button></div>
+        <div class="chart" id="groups"></div>
+      </div>
+      <div class="card">
+        <div class="chead"><div><h2>رصيد شراشف العنايات</h2><div class="desc">الصادر − الوارد خلال الفترة</div></div></div>
+        <div id="icu"></div>
+      </div>
+    </div>
+
+    <div class="card wide">
+      <div class="chead"><div><h2>الاستهلاك حسب الجهة</h2><div class="desc">الصادر النظيف والوارد المتسخ لكل جهة</div></div>
+        <button class="tbtn" data-t="depts">جدول</button></div>
+      <div class="chips" id="itemChips"></div>
+      <div class="legend"><span><i style="background:var(--s1)"></i>صادر</span><span><i style="background:var(--s2)"></i>وارد</span></div>
+      <div class="chart" id="depts"></div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <div class="chead"><div><h2>المخزن — آخر جرد</h2><div class="desc">آخر رقم سجّله المدوّن عند التسليم</div></div></div>
+        <div class="mini" id="store"></div>
+      </div>
+      <div class="card">
+        <div class="chead"><div><h2>بدلات العمليات</h2><div class="desc">خلال الفترة المحددة</div></div></div>
+        <div class="mini" id="or"></div>
+      </div>
+    </div>
+
+    <div class="card wide">
+      <div class="chead"><div><h2>انتظام التقارير</h2><div class="desc">حالة تقرير كل وجبة: ص = صباحية، ل = ليلية</div></div>
+        <button class="tbtn" data-t="reports">جدول</button></div>
+      <div class="legend" id="repLegend"></div>
+      <div id="reports"></div>
+    </div>
+
+    <div class="card wide">
+      <div class="chead"><div><h2>فروق جرد البطانيات الجاهزة</h2>
+        <div class="desc">المتوقع = جاهز الوجبة السابقة + الغسلات × 6 − الصادر. يظهر الفرق حين يُسجَّل جرد وجبتين متتاليتين.</div></div></div>
+      <div id="diffs" class="tscroll"></div>
+    </div>
+  </div>
+</main>
+<div id="tip"></div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const STATUS = {
+    sent:    { label:'أُرسل', icon:'✓', color:'var(--good)' },
+    empty:   { label:'وجبة فارغة', icon:'!', color:'var(--warning)' },
+    missing: { label:'لم يُرسل', icon:'✕', color:'var(--critical)' },
+    open:    { label:'جارية', icon:'•', color:'var(--s1)' },
+    future:  { label:'خارج فترة السجل', icon:'', color:'var(--grid)' }
+  };
+  const ITEMS = ['شرشف', 'بطانية', 'وسادة', 'بدلة عمليات'];
+  let token = null, data = null, item = 'شرشف', preset = '7';
+  const tableMode = {};
+
+  // ===== أدوات =====
+  const fmtN = n => (n == null || isNaN(n)) ? '—' : Number(n).toLocaleString('en-US');
+  const bagDate = d => new Intl.DateTimeFormat('en-CA', { timeZone:'Asia/Baghdad' }).format(d);
+  const dm = s => s.slice(8, 10) + '/' + s.slice(5, 7);
+  const shiftLabel = id => dm(id) + ' ' + (id.slice(-1) === 'N' ? 'ليلية' : 'صباحية');
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+  const store_ = {
+    get: k => { try { return sessionStorage.getItem(k); } catch (e) { return null; } },
+    set: (k, v) => { try { v == null ? sessionStorage.removeItem(k) : sessionStorage.setItem(k, v); } catch (e) {} }
+  };
+  function niceMax(v) {
+    if (!(v > 0)) return 4;
+    const raw = v / 4, p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p;
+    const step = (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p;
+    return step * 4;
+  }
+  // رقم بإشارة يُعرض باتجاه ثابت حتى لا تنقلب الإشارة في النص العربي
+  const signed = n => '<span dir="ltr">' + (n > 0 ? '+' : '') + fmtN(n) + '</span>';
+  const compact = n => n >= 1000 ? (n / 1000).toFixed(n % 1000 ? 1 : 0) + 'K' : String(n);
+
+  // ===== الوضع الليلي =====
+  function toggleTheme() {
+    const root = document.documentElement;
+    const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    root.dataset.theme = dark ? 'light' : 'dark';
+    try { localStorage.setItem('theme', root.dataset.theme); } catch (e) {}
+  }
+  try { const t = localStorage.getItem('theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+
+  // ===== التلميح =====
+  const tip = $('tip');
+  function showTip(e, title, rows) {
+    tip.innerHTML = '<div class="t">' + esc(title) + '</div>' + rows.map(r =>
+      '<div class="r"><span>' + (r.color ? '<i style="background:' + r.color + '"></i>' : '') + esc(r.name) + '</span><b>' + esc(r.value) + '</b></div>').join('');
+    tip.style.display = 'block';
+    const w = tip.offsetWidth, h = tip.offsetHeight;
+    let x = e.clientX - w - 14, y = e.clientY - h - 10;
+    if (x < 8) x = e.clientX + 14;
+    if (y < 8) y = e.clientY + 16;
+    tip.style.left = x + 'px';
+    tip.style.top = y + 'px';
+  }
+  const hideTip = () => { tip.style.display = 'none'; };
+
+  // ===== الرسوم (SVG، باتجاه من اليمين لليسار) =====
+  const NS = 'http://www.w3.org/2000/svg';
+  function svgEl(tag, attrs, parent) {
+    const el = document.createElementNS(NS, tag);
+    for (const k in attrs) el.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(el);
+    return el;
+  }
+  // عمود بحافة علوية مستديرة 4px وقاعدة مربعة
+  function colPath(x, y, w, h, round) {
+    const r = round ? Math.min(4, h, w / 2) : 0;
+    return 'M' + x + ',' + (y + h) + 'V' + (y + r) + 'Q' + x + ',' + y + ' ' + (x + r) + ',' + y
+      + 'H' + (x + w - r) + 'Q' + (x + w) + ',' + y + ' ' + (x + w) + ',' + (y + r) + 'V' + (y + h) + 'Z';
+  }
+  // شريط أفقي ينمو نحو اليسار، طرفه الأيسر مستدير
+  function barPath(x, y, w, h) {
+    const r = Math.min(4, w, h / 2);
+    return 'M' + (x + w) + ',' + y + 'H' + (x + r) + 'Q' + x + ',' + y + ' ' + x + ',' + (y + r)
+      + 'V' + (y + h - r) + 'Q' + x + ',' + (y + h) + ' ' + (x + r) + ',' + (y + h) + 'H' + (x + w) + 'Z';
+  }
+  function yAxis(svg, m, W, H, max) {
+    for (let i = 0; i <= 4; i++) {
+      const v = max * i / 4, y = H - m.b - (H - m.t - m.b) * i / 4;
+      svgEl('line', { x1:m.l, x2:W - m.r, y1:y, y2:y, style:'stroke:var(' + (i ? '--grid' : '--axis') + ');stroke-width:1' }, svg);
+      const t = svgEl('text', { x:W - m.r + 6, y:y + 4, 'text-anchor':'start', style:'fill:var(--muted);font-size:11px;font-variant-numeric:tabular-nums' }, svg);
+      t.textContent = compact(v);
+    }
+  }
+  function xLabels(svg, m, W, H, cats, xAt) {
+    const fit = Math.max(1, Math.floor((W - m.l - m.r) / 46)), step = Math.ceil(cats.length / fit);
+    cats.forEach((c, i) => {
+      if (i % step) return;
+      const t = svgEl('text', { x:xAt(i), y:H - 8, 'text-anchor':'middle', style:'fill:var(--muted);font-size:11px' }, svg);
+      t.textContent = c;
+    });
+  }
+
+  function columns(el, cats, series) {
+    el.innerHTML = '';
+    if (!cats.length) { el.innerHTML = '<div class="empty">لا توجد بيانات</div>'; return; }
+    const W = el.clientWidth || 600, H = 230, m = { t:12, r:34, b:28, l:6 };
+    const totals = cats.map((_, i) => series.reduce((a, s) => a + s.values[i], 0));
+    const max = niceMax(Math.max.apply(null, totals));
+    const pw = W - m.l - m.r, ph = H - m.t - m.b, band = pw / cats.length, bw = Math.max(3, Math.min(24, band * .62));
+    const xAt = i => W - m.r - (i + .5) * band;
+    const svg = svgEl('svg', { viewBox:'0 0 ' + W + ' ' + H, height:H, role:'img' }, el);
+    yAxis(svg, m, W, H, max);
+    cats.forEach((c, i) => {
+      let base = H - m.b;
+      const vis = series.filter(s => s.values[i] > 0);
+      vis.forEach((s, k) => {
+        const h = s.values[i] / max * ph, top = k === vis.length - 1;
+        const gap = k ? 2 : 0; // فاصل 2px بين المقاطع
+        svgEl('path', { d:colPath(xAt(i) - bw / 2, base - h + gap, bw, Math.max(0, h - gap), top), style:'fill:' + s.color }, svg);
+        base -= h;
+      });
+      const hit = svgEl('rect', { x:xAt(i) - band / 2, y:m.t, width:band, height:ph, fill:'transparent' }, svg);
+      hit.addEventListener('mousemove', e => {
+        hit.setAttribute('style', 'fill:var(--wash)');
+        showTip(e, c, series.map(s => ({ name:s.name, value:fmtN(s.values[i]), color:s.color }))
+          .concat(series.length > 1 ? [{ name:'المجموع', value:fmtN(totals[i]) }] : []));
+      });
+      hit.addEventListener('mouseleave', () => { hit.setAttribute('style', 'fill:transparent'); hideTip(); });
+    });
+    xLabels(svg, m, W, H, cats, xAt);
+  }
+
+  function lines(el, cats, series) {
+    el.innerHTML = '';
+    if (!cats.length) { el.innerHTML = '<div class="empty">لا توجد بيانات</div>'; return; }
+    const W = el.clientWidth || 600, H = 230, m = { t:14, r:34, b:28, l:40 };
+    const max = niceMax(Math.max.apply(null, series.map(s => Math.max.apply(null, s.values))));
+    const pw = W - m.l - m.r, ph = H - m.t - m.b;
+    const xAt = i => cats.length === 1 ? W - m.r - pw / 2 : W - m.r - i * pw / (cats.length - 1);
+    const yAt = v => H - m.b - v / max * ph;
+    const svg = svgEl('svg', { viewBox:'0 0 ' + W + ' ' + H, height:H, role:'img' }, el);
+    yAxis(svg, m, W, H, max);
+    const cross = svgEl('line', { y1:m.t, y2:H - m.b, style:'stroke:var(--axis);stroke-width:1;display:none' }, svg);
+    const dots = [];
+    series.forEach(s => {
+      const d = s.values.map((v, i) => (i ? 'L' : 'M') + xAt(i) + ',' + yAt(v)).join('');
+      svgEl('path', { d:d + 'L' + xAt(cats.length - 1) + ',' + (H - m.b) + 'L' + xAt(0) + ',' + (H - m.b) + 'Z', style:'fill:' + s.color + ';opacity:.1' }, svg);
+      svgEl('path', { d:d, style:'fill:none;stroke:' + s.color + ';stroke-width:2;stroke-linejoin:round;stroke-linecap:round' }, svg);
+      const last = cats.length - 1;
+      svgEl('circle', { cx:xAt(last), cy:yAt(s.values[last]), r:4, style:'fill:' + s.color + ';stroke:var(--surface);stroke-width:2' }, svg);
+      const lb = svgEl('text', { x:xAt(last) - 8, y:yAt(s.values[last]) + 4, 'text-anchor':'end', style:'fill:var(--ink2);font-size:11.5px;font-weight:600' }, svg);
+      lb.textContent = fmtN(s.values[last]);
+      dots.push(svgEl('circle', { r:5, style:'fill:' + s.color + ';stroke:var(--surface);stroke-width:2;display:none' }, svg));
+    });
+    const hit = svgEl('rect', { x:m.l, y:m.t, width:pw, height:ph, fill:'transparent' }, svg);
+    hit.addEventListener('mousemove', e => {
+      const box = svg.getBoundingClientRect(), px = (e.clientX - box.left) * W / box.width;
+      const i = cats.length === 1 ? 0 : Math.max(0, Math.min(cats.length - 1, Math.round((W - m.r - px) / pw * (cats.length - 1))));
+      cross.setAttribute('x1', xAt(i)); cross.setAttribute('x2', xAt(i)); cross.style.display = '';
+      series.forEach((s, k) => { dots[k].setAttribute('cx', xAt(i)); dots[k].setAttribute('cy', yAt(s.values[i])); dots[k].style.display = ''; });
+      showTip(e, cats[i], series.map(s => ({ name:s.name, value:fmtN(s.values[i]), color:s.color })));
+    });
+    hit.addEventListener('mouseleave', () => { cross.style.display = 'none'; dots.forEach(d => d.style.display = 'none'); hideTip(); });
+    xLabels(svg, m, W, H, cats, xAt);
+  }
+
+  function hbars(el, cats, series) {
+    el.innerHTML = '';
+    if (!cats.length) { el.innerHTML = '<div class="empty">لا توجد بيانات</div>'; return; }
+    const bh = series.length > 1 ? 11 : 16, rowH = series.length * bh + (series.length - 1) * 2 + 16;
+    const W = el.clientWidth || 400, labelW = Math.min(150, W * .36), m = { t:4, r:labelW, b:4, l:40 };
+    const H = m.t + m.b + cats.length * rowH;
+    const max = niceMax(Math.max.apply(null, series.map(s => Math.max.apply(null, s.values))));
+    const pw = W - m.l - m.r;
+    const svg = svgEl('svg', { viewBox:'0 0 ' + W + ' ' + H, height:H, role:'img' }, el);
+    svgEl('line', { x1:W - m.r, x2:W - m.r, y1:m.t, y2:H - m.b, style:'stroke:var(--axis);stroke-width:1' }, svg);
+    cats.forEach((c, i) => {
+      const y0 = m.t + i * rowH + 8;
+      const t = svgEl('text', { x:W - m.r + 8, y:y0 + (rowH - 16) / 2 + 4, 'text-anchor':'start', style:'fill:var(--ink);font-size:12.5px' }, svg);
+      t.textContent = c.length > 22 ? c.slice(0, 21) + '…' : c;
+      series.forEach((s, k) => {
+        const v = s.values[i], w = v / max * pw, y = y0 + k * (bh + 2);
+        if (v > 0) svgEl('path', { d:barPath(W - m.r - w, y, w, bh), style:'fill:' + s.color }, svg);
+        const vt = svgEl('text', { x:W - m.r - w - 6, y:y + bh / 2 + 4, 'text-anchor':'end', style:'fill:var(--ink2);font-size:11.5px;font-variant-numeric:tabular-nums' }, svg);
+        vt.textContent = fmtN(v);
+      });
+      const hit = svgEl('rect', { x:0, y:y0 - 6, width:W, height:rowH, fill:'transparent' }, svg);
+      hit.addEventListener('mousemove', e => {
+        hit.setAttribute('style', 'fill:var(--wash)');
+        showTip(e, c, series.map(s => ({ name:s.name, value:fmtN(s.values[i]), color:s.color })));
+      });
+      hit.addEventListener('mouseleave', () => { hit.setAttribute('style', 'fill:transparent'); hideTip(); });
+    });
+  }
+
+  function table(el, head, rows) {
+    el.innerHTML = '<div class="tscroll"><table><thead><tr>' + head.map(h => '<th>' + esc(h) + '</th>').join('')
+      + '</tr></thead><tbody>' + rows.map(r => '<tr>' + r.map(v => '<td>' + (typeof v === 'number' ? fmtN(v) : v) + '</td>').join('') + '</tr>').join('')
+      + '</tbody></table></div>';
+  }
+
+  function sparkline(values) {
+    if (values.length < 2) return '';
+    const W = 120, H = 28, max = Math.max.apply(null, values), min = Math.min.apply(null, values), span = (max - min) || 1;
+    const pts = values.map((v, i) => [W - i * W / (values.length - 1), H - 3 - (v - min) / span * (H - 6)]);
+    const last = pts[pts.length - 1];
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" height="' + H + '" style="width:100%;margin-top:6px;overflow:visible">'
+      + '<path d="' + pts.map((p, i) => (i ? 'L' : 'M') + p[0] + ',' + p[1]).join('') + '" style="fill:none;stroke:var(--muted);stroke-width:1.5"/>'
+      + '<circle cx="' + last[0] + '" cy="' + last[1] + '" r="3.5" style="fill:var(--s1);stroke:var(--surface);stroke-width:2"/></svg>';
+  }
+
+  // ===== العرض =====
+  function render() {
+    if (!data) return;
+    const k = data.kpi;
+    $('upd').textContent = 'آخر تحديث ' + data.updated.slice(11);
+
+    // البطل: المتسخ المتراكم
+    const need = Math.ceil(data.dirty / data.perWash);
+    $('dirty').innerHTML = fmtN(data.dirty) + '<small>بطانية</small>';
+    $('dirtyNote').textContent = data.dirty
+      ? 'تحتاج نحو ' + fmtN(need) + ' غسلة (≈ ' + fmtN(Math.ceil(need / 3)) + ' دورة للغسالات الثلاث). محسوب من الوارد ناقص الغسلات منذ بداية السجل.'
+      : 'لا يوجد متسخ متراكم حسب السجل.';
+    const pct = Math.min(100, need / 30 * 100); // 30 غسلة ≈ عبء كبير
+    $('dirtyMeter').style.width = pct + '%';
+    $('dirtyMeter').style.background = need > 20 ? 'var(--critical)' : need > 10 ? 'var(--warning)' : 'var(--s1)';
+
+    const rate = k.reportsDue ? Math.round(k.reportsSent / k.reportsDue * 100) : null;
+    const tiles = [
+      ['غسلات البطانيات', k.washes, fmtN(k.washes * data.perWash) + ' بطانية مغسولة'],
+      ['البطانيات الواردة', k.blanketsIn, 'الصادر ' + fmtN(k.blanketsOut)],
+      ['الشراشف الواردة', k.sheetsIn, 'الصادر ' + fmtN(k.sheetsOut)],
+      ['غسلات الشراشف (تقدير)', k.sheetWashesEst, 'كل 60 شرشفاً = غسلة'],
+      ['بدلات العمليات المجهّزة', k.suitsOut, 'صادر إلى صالات العمليات'],
+      ['انتظام التقارير', rate == null ? '—' : rate + '%', fmtN(k.reportsSent) + ' من ' + fmtN(k.reportsDue) + ' وجبة'],
+      ['شراشف العنايات', data.icu.reduce((a, x) => a + x.out, 0), 'وارد ' + fmtN(data.icu.reduce((a, x) => a + x.in, 0))],
+      ['فروق الجرد', data.diffs.filter(d => d.diff !== 0).length, 'وجبة بفرق من ' + fmtN(data.diffs.length) + ' وجبة مقارنة']
+    ];
+    $('tiles').innerHTML = tiles.map(t => '<div class="tile"><div class="k">' + t[0] + '</div><div class="v">'
+      + (typeof t[1] === 'number' ? fmtN(t[1]) : t[1]) + '</div><div class="d">' + t[2] + '</div></div>').join('');
+
+    const cats = data.days.map(d => dm(d.date));
+    draw('washDaily', () => columns($('washDaily'), cats, [
+      { name:'صباحية', color:'var(--s1)', values:data.days.map(d => d.washD) },
+      { name:'ليلية', color:'var(--s2)', values:data.days.map(d => d.washN) }
+    ]), () => table($('washDaily'), ['اليوم', 'صباحية', 'ليلية', 'المجموع'],
+      data.days.map(d => [d.date, d.washD, d.washN, d.washD + d.washN])));
+
+    draw('inDaily', () => lines($('inDaily'), cats, [
+      { name:'شراشف', color:'var(--s1)', values:data.days.map(d => d.sheetsIn) },
+      { name:'بطانيات', color:'var(--s2)', values:data.days.map(d => d.blanketsIn) }
+    ]), () => table($('inDaily'), ['اليوم', 'شراشف', 'بطانيات'], data.days.map(d => [d.date, d.sheetsIn, d.blanketsIn])));
+
+    const wCats = ['غسالة 1', 'غسالة 2', 'غسالة 3'], wVals = [1, 2, 3].map(w => data.washers[w] || 0);
+    draw('washers', () => hbars($('washers'), wCats, [{ name:'غسلات', color:'var(--s1)', values:wVals }]),
+      () => table($('washers'), ['الغسالة', 'الغسلات'], wCats.map((c, i) => [c, wVals[i]])));
+
+    const gCats = Object.keys(data.groups).sort(), gVals = gCats.map(g => data.groups[g]);
+    draw('groups', () => hbars($('groups'), gCats, [{ name:'غسلات', color:'var(--s1)', values:gVals }]),
+      () => table($('groups'), ['المجموعة', 'الغسلات'], gCats.map((c, i) => [c, gVals[i]])));
+
+    $('icu').innerHTML = data.icu.length ? '<div class="tscroll"><table><thead><tr><th>العناية</th><th>صادر</th><th>وارد</th><th>الرصيد</th></tr></thead><tbody>'
+      + data.icu.map(x => '<tr><td>' + esc(x.name) + '</td><td>' + fmtN(x.out) + '</td><td>' + fmtN(x.in) + '</td><td class="bal">'
+        + signed(x.balance) + '</td></tr>').join('') + '</tbody></table></div>'
+      + '<div class="desc" style="margin-top:8px">الرصيد الموجب = شراشف لدى العناية لم تعد بعد.</div>'
+      : '<div class="empty">لا توجد عنايات</div>';
+
+    // الجهات
+    $('itemChips').innerHTML = ITEMS.map(i => '<button class="chip" aria-pressed="' + (i === item) + '" data-item="' + i + '">' + i + '</button>').join('');
+    const dl = data.depts.filter(d => d.items[item]);
+    draw('depts', () => hbars($('depts'), dl.map(d => d.name), [
+      { name:'صادر', color:'var(--s1)', values:dl.map(d => d.items[item].out) },
+      { name:'وارد', color:'var(--s2)', values:dl.map(d => d.items[item].in) }
+    ]), () => table($('depts'), ['الجهة', 'صادر', 'وارد'], dl.map(d => [esc(d.name), d.items[item].out, d.items[item].in])));
+
+    $('store').innerHTML = data.store.map(s => '<div class="tile"><div class="k">' + esc(s.label) + '</div><div class="v">' + fmtN(s.last)
+      + '</div><div class="d">' + (s.lastShift ? shiftLabel(s.lastShift) : 'لم يُسجَّل بعد') + '</div>'
+      + sparkline(s.series.map(p => p.value)) + '</div>').join('');
+
+    $('or').innerHTML = data.or.map(o => '<div class="tile"><div class="k">' + esc(o.name) + '</div><div class="v">' + fmtN(o.out)
+      + '</div><div class="d">بدلة صادرة في ' + fmtN(o.shifts) + ' وجبة • وارد ' + fmtN(o.in) + '</div></div>').join('')
+      || '<div class="empty">لا توجد صالات عمليات</div>';
+
+    // انتظام التقارير
+    $('repLegend').innerHTML = ['sent', 'empty', 'missing', 'open'].map(s =>
+      '<span class="badge"><i style="background:' + STATUS[s].color + '">' + STATUS[s].icon + '</i>' + STATUS[s].label + '</span>').join('');
+    draw('reports', () => {
+      const byDay = {};
+      data.reports.forEach(r => { (byDay[r.shift.slice(0, 10)] = byDay[r.shift.slice(0, 10)] || {})[r.shift.slice(-1)] = r; });
+      const cell = r => '<div class="cell" style="background:' + STATUS[r.status].color + '" data-s="' + r.shift + '">' + STATUS[r.status].icon + '</div>';
+      $('reports').innerHTML = '<div class="cal"><div class="col"><div class="rl">ص</div><div class="rl">ل</div><div class="dl">&nbsp;</div></div>'
+        + Object.keys(byDay).map(d => '<div class="col">' + cell(byDay[d].D) + cell(byDay[d].N) + '<div class="dl">' + dm(d) + '</div></div>').join('') + '</div>';
+      const byId = {};
+      data.reports.forEach(r => { byId[r.shift] = r; });
+      $('reports').querySelectorAll('.cell').forEach(c => {
+        const r = byId[c.dataset.s];
+        c.addEventListener('mousemove', e => showTip(e, shiftLabel(r.shift), [
+          { name:'الحالة', value:STATUS[r.status].label, color:STATUS[r.status].color },
+          { name:'المدوّن', value:r.recorder || '—' }, { name:'المجموعة', value:r.group || '—' },
+          { name:'وقت الإرسال', value:r.sentAt ? r.sentAt.slice(11, 16) : '—' }]));
+        c.addEventListener('mouseleave', hideTip);
+      });
+    }, () => table($('reports'), ['الوجبة', 'الحالة', 'المدوّن', 'المجموعة', 'وقت الإرسال'],
+      data.reports.filter(r => r.status !== 'future').map(r => [shiftLabel(r.shift),
+        '<span class="badge"><i style="background:' + STATUS[r.status].color + '">' + STATUS[r.status].icon + '</i>' + STATUS[r.status].label + '</span>',
+        esc(r.recorder || '—'), esc(r.group || '—'), r.sentAt || '—'])));
+
+    // فروق الجرد
+    $('diffs').innerHTML = data.diffs.length ? '' : '<div class="empty">لا توجد وجبات متتالية مسجّل جردها في هذه الفترة</div>';
+    if (data.diffs.length) table($('diffs'), ['الوجبة', 'المدوّن', 'المتوقع', 'الفعلي', 'الفرق', 'الحالة'],
+      data.diffs.slice().reverse().map(d => {
+        const a = Math.abs(d.diff);
+        const s = a === 0 ? ['✓', 'مطابق', 'var(--good)'] : a <= data.perWash ? ['!', d.diff > 0 ? 'زيادة بسيطة' : 'نقص بسيط', 'var(--warning)']
+          : ['✕', d.diff > 0 ? 'زيادة كبيرة' : 'نقص كبير', 'var(--critical)'];
+        return [shiftLabel(d.shift), esc(d.recorder || '—'), d.expected, d.actual, signed(d.diff),
+          '<span class="badge"><i style="background:' + s[2] + '">' + s[0] + '</i>' + s[1] + '</span>'];
+      }));
+  }
+
+  // رسم البطاقة كرسم أو كجدول حسب زر "جدول"
+  function draw(id, chartFn, tableFn) { (tableMode[id] ? tableFn : chartFn)(); }
+
+  // ===== التحميل والمرشحات =====
+  function setPreset(p) {
+    preset = p;
+    const now = new Date(), today = bagDate(now);
+    let from = today;
+    if (p === '7') from = bagDate(new Date(now.getTime() - 6 * 864e5));
+    if (p === '30') from = bagDate(new Date(now.getTime() - 29 * 864e5));
+    if (p === 'month') from = today.slice(0, 8) + '01';
+    $('from').value = from;
+    $('to').value = today;
+    markPreset();
+    load();
+  }
+  function markPreset() {
+    document.querySelectorAll('#filters .chip').forEach(c => c.setAttribute('aria-pressed', c.dataset.p === preset));
+  }
+
+  function load() {
+    const from = $('from').value, to = $('to').value;
+    if (!from || !to || from > to) { $('dashMsg').textContent = 'اختر فترة صحيحة'; return; }
+    $('dashMsg').textContent = '';
+    $('upd').textContent = 'جارٍ التحميل...';
+    google.script.run
+      .withSuccessHandler(d => { data = d; render(); })
+      .withFailureHandler(e => {
+        const t = (e && e.message) || String(e);
+        if (t.indexOf('انتهت الجلسة') !== -1) { logout(); $('loginMsg').textContent = t; return; }
+        $('dashMsg').textContent = t;
+        $('upd').textContent = '';
+      })
+      .getDashboard(token, from, to);
+  }
+
+  document.addEventListener('click', e => {
+    const p = e.target.closest('#filters .chip');
+    if (p) { setPreset(p.dataset.p); return; }
+    const it = e.target.closest('[data-item]');
+    if (it) { item = it.dataset.item; render(); return; }
+    const t = e.target.closest('[data-t]');
+    if (t) { tableMode[t.dataset.t] = !tableMode[t.dataset.t]; t.setAttribute('aria-pressed', !!tableMode[t.dataset.t]); render(); }
+  });
+  ['from', 'to'].forEach(id => $(id).addEventListener('change', () => { preset = ''; markPreset(); load(); }));
+
+  let resizeT = null;
+  window.addEventListener('resize', () => { clearTimeout(resizeT); resizeT = setTimeout(render, 150); });
+  setInterval(() => { if (token && !document.hidden) load(); }, 5 * 60 * 1000);
+
+  // ===== الدخول =====
+  function enter() {
+    $('login').classList.add('hidden');
+    $('dash').classList.remove('hidden');
+    $('refreshBtn').classList.remove('hidden');
+    $('logoutBtn').classList.remove('hidden');
+    setPreset('7');
+  }
+  function logout() {
+    token = null; data = null;
+    store_.set('dashToken', null);
+    $('dash').classList.add('hidden');
+    $('login').classList.remove('hidden');
+    $('refreshBtn').classList.add('hidden');
+    $('logoutBtn').classList.add('hidden');
+    $('upd').textContent = '';
+  }
+  function doLogin() {
+    const name = $('name').value, pin = String($('pin').value).replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).trim();
+    if (!name || !pin) { $('loginMsg').textContent = 'اختر اسمك واكتب الرمز'; return; }
+    $('loginBtn').disabled = true;
+    $('loginMsg').textContent = '';
+    google.script.run
+      .withSuccessHandler(r => {
+        $('loginBtn').disabled = false;
+        $('pin').value = '';
+        if (r.role !== 'مسؤول' && r.role !== 'مدير النظام') { $('loginMsg').textContent = 'لوحة المتابعة للمسؤولين فقط'; return; }
+        token = r.token;
+        store_.set('dashToken', token);
+        enter();
+      })
+      .withFailureHandler(e => { $('loginBtn').disabled = false; $('loginMsg').textContent = (e && e.message) || String(e); })
+      .login(name, pin);
+  }
+  $('pin').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+  google.script.run
+    .withSuccessHandler(names => {
+      const s = $('name');
+      s.innerHTML = '';
+      s.add(new Option('اختر اسمك', ''));
+      names.forEach(n => s.add(new Option(n, n)));
+    })
+    .withFailureHandler(e => { $('loginMsg').textContent = (e && e.message) || String(e); })
+    .listUsers();
+
+  const saved = store_.get('dashToken');
+  if (saved) { token = saved; enter(); }
+</script>
+</body>
+</html>

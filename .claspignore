@@ -1,0 +1,6 @@
+# يرفع clasp ملفات Apps Script فقط
+**/**
+!appsscript.json
+!الرمز.js
+!Index.html
+!Dashboard.html

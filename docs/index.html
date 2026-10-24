@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>سجل اللوندري</title>
+<meta name="theme-color" content="#1f3a5f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="سجل اللوندري">
+<style>
+  html, body { margin:0; height:100%; background:#fff; font-family:Tahoma, Arial, sans-serif; }
+  iframe { position:fixed; inset:0; width:100%; height:100%; border:0; }
+  #splash { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px;
+    background:#fff; color:#1f3a5f; transition:opacity .3s; z-index:2; }
+  #splash img { width:132px; height:132px; }
+  #splash .t { font-size:20px; font-weight:bold; }
+  #splash .s { font-size:13px; color:#5b6b7c; }
+  #splash a { display:none; margin-top:8px; color:#1f3a5f; font-size:14px; }
+  .bar { width:120px; height:4px; border-radius:2px; background:#e3e8ee; overflow:hidden; }
+  .bar::after { content:''; display:block; width:40%; height:100%; background:#1f3a5f; border-radius:2px; animation:slide 1.1s infinite ease-in-out; }
+  @keyframes slide { from { transform:translateX(160%); } to { transform:translateX(-260%); } }
+</style>
+</head>
+<body>
+<div id="splash">
+  <img src="icons/icon-192.png" alt="شعار مستشفى الكفيل التخصصي">
+  <div class="t">سجل اللوندري</div>
+  <div class="s">مستشفى الكفيل التخصصي</div>
+  <div class="bar"></div>
+  <a id="direct" target="_top">لم تفتح الصفحة؟ اضغط هنا</a>
+</div>
+<script>
+  // رابط تطبيق الويب المنشور (عملية النشر الرسمية — لا يتغيّر عند نشر إصدار جديد)
+  const APP = 'https://script.google.com/macros/s/AKfycbyBHtn7_j7wnNjLbM7lLiKFARtroKlrAPymMngOi_X99iVTUM1sBWxqGdqT5goQH6vTTg/exec';
+  const page = new URLSearchParams(location.search).get('page');
+  const url = APP + (page === 'dashboard' ? '?page=dashboard' : '');
+
+  const f = document.createElement('iframe');
+  f.src = url;
+  f.allow = 'clipboard-write';
+  f.title = 'سجل اللوندري';
+  f.onload = () => { const s = document.getElementById('splash'); s.style.opacity = 0; setTimeout(() => s.remove(), 300); };
+  document.body.appendChild(f);
+
+  // إن تأخر التحميل كثيراً نعرض رابطاً مباشراً
+  const a = document.getElementById('direct');
+  a.href = url;
+  setTimeout(() => { if (document.getElementById('splash')) a.style.display = 'block'; }, 12000);
+
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
