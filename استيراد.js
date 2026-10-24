@@ -189,6 +189,43 @@ function replaceTestShift() {
   return result;
 }
 
+// مرة واحدة (بطلب المستخدم): الورق لا يذكر البطانيات الواردة والصادرة، فتُقدَّر لكل وجبة ورقية
+// بالتساوي: الوارد = الصادر = غسلات الوجبة × سعة الغسلة، على جهة الطوابق
+const BLANKET_NOTE = IMPORT_TAG + ' — مقدَّر من الغسلات × 6';
+function addImportedBlankets() {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const perWash = Number(setting_('بطانيات لكل غسلة', 6));
+    const floors = sheet_('الجهات').getDataRange().getValues().slice(1).find(r => r[0] === 'R01')[1];
+    const shifts = sheet_('الوجبات').getDataRange().getValues().slice(1).filter(r => r[4] === IMPORT_TAG).map(r => r[0]);
+    const washes = {};
+    sheet_('الغسلات').getDataRange().getValues().slice(1)
+      .filter(r => r[4] === IMPORT_TAG).forEach(r => { washes[r[1]] = (washes[r[1]] || 0) + 1; });
+    const mvSheet = sheet_('الحركات');
+    const done = {};
+    mvSheet.getDataRange().getValues().slice(1).filter(r => r[9] === BLANKET_NOTE).forEach(r => { done[r[1]] = true; });
+    const rows = [];
+    let seq = 0;
+    shifts.forEach(id => {
+      const qty = (washes[id] || 0) * perWash;
+      if (!qty || done[id]) return;
+      const t = id.slice(0, 10) + (id.slice(-1) === 'N' ? ' 20:00:00' : ' 08:00:00');
+      ['وارد', 'صادر'].forEach(type => rows.push(['M' + Date.now().toString(36).toUpperCase() + (seq++).toString(36).toUpperCase(),
+        id, t, type, floors, 'بطانية', qty, '', IMPORT_TAG, BLANKET_NOTE]));
+    });
+    if (rows.length) mvSheet.getRange(mvSheet.getLastRow() + 1, 1, rows.length, rows[0].length).setValues(rows);
+    const props = PropertiesService.getScriptProperties();
+    const status = JSON.parse(props.getProperty(IMPORT_KEY) || '{}');
+    status.blankets = { shifts: rows.length / 2, each: rows.reduce((a, r) => a + (r[3] === 'وارد' ? r[6] : 0), 0) };
+    props.setProperty(IMPORT_KEY, JSON.stringify(status));
+    props.setProperty('IMPORT_BLANKETS_DONE', '1');
+    return status.blankets;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
 function importOctoberMenu() {
   const r = importOctober();
   SpreadsheetApp.getUi().alert('الاستيراد: ' + r.users + ' مدوّن، ' + r.shifts + ' وجبة، ' + r.movements + ' حركة، '
