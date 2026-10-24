@@ -651,6 +651,16 @@ function getDashboard(token, from, to) {
       actual: cur['بطانيات جاهزة'], diff: cur['بطانيات جاهزة'] - expected };
   }).filter(Boolean);
 
+  // البطانيات المصروفة المستنتجة للوجبات الورقية (لا تذكر الصادر):
+  // جاهز الوجبة السابقة + غسلات الوجبة × السعة − جاهز هذه الوجبة
+  const inferred = shiftIds.filter(id => inRange(id) && importedShift[id]).map(id => {
+    const prev = invBy[prevId(id)], cur = invBy[id];
+    if (!prev || prev['بطانيات جاهزة'] === undefined || cur['بطانيات جاهزة'] === undefined) return null;
+    const washes = wsAll.filter(r => r[1] === id).length;
+    return { shift: id, prevReady: prev['بطانيات جاهزة'], washes: washes, ready: cur['بطانيات جاهزة'],
+      out: prev['بطانيات جاهزة'] + washes * perWash - cur['بطانيات جاهزة'] };
+  }).filter(Boolean);
+
   // انتظام التقارير لكل وجبة في الفترة
   const cur = currentShift_().id;
   const shRow = {};
@@ -687,7 +697,7 @@ function getDashboard(token, from, to) {
     },
     days: days, washers: washers, groups: groups,
     depts: Object.values(depts).sort((a, b) => a.order - b.order),
-    icu: icu, or: or, store: store, diffs: diffs, reports: reports
+    icu: icu, or: or, store: store, diffs: diffs, inferred: inferred, reports: reports
   };
 }
 

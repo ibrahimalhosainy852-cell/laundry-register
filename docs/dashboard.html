@@ -302,6 +302,12 @@
         <div class="desc">المتوقع = جاهز الوجبة السابقة + الغسلات × 6 − البطانيات الصادرة. يُحسب للوجبات المسجّلة في التطبيق فقط،
           لأن التقارير الورقية المستوردة لا تذكر البطانيات الصادرة.</div></div></div>
       <div id="diffs" class="tscroll"></div>
+      <div id="inferredBox" class="hidden" style="margin-top:18px">
+        <div class="chead"><div><h2>البطانيات المصروفة المستنتجة — التقارير الورقية</h2>
+          <div class="desc">المصروف = جاهز الوجبة السابقة + الغسلات × 6 − جاهز هذه الوجبة. تقدير لأن الورق لا يذكر الصادر.</div></div></div>
+        <div class="mini" id="inferredSum" style="margin-bottom:10px"></div>
+        <div id="inferred" class="tscroll"></div>
+      </div>
     </div>
   </div>
 </main>
@@ -585,7 +591,7 @@
       ['فروق الجرد', data.diffs.filter(d => d.diff !== 0).length, 'وجبة بفرق من ' + fmtN(data.diffs.length) + ' وجبة مقارنة']
     ];
     $('tiles').innerHTML = tiles.map(t => '<div class="tile"><div class="k">' + t[0] + '</div><div class="v">'
-      + (typeof t[1] === 'number' ? fmtN(t[1]) : t[1]) + '</div><div class="d">' + t[2] + '</div></div>').join('');
+      + (typeof t[1] === 'string' ? t[1] : fmtN(t[1])) + '</div><div class="d">' + t[2] + '</div></div>').join('');
 
     const cats = data.days.map(d => dm(d.date));
     draw('washDaily', () => columns($('washDaily'), cats, [
@@ -665,6 +671,31 @@
         return [shiftLabel(d.shift), esc(d.recorder || '—'), d.expected, d.actual, signed(d.diff),
           '<span class="badge"><i style="background:' + s[2] + '">' + s[0] + '</i>' + s[1] + '</span>'];
       }));
+    renderInferred();
+  }
+
+  // البطانيات المصروفة المستنتجة (للوجبات الورقية)
+  function inferredStats(list) {
+    const ok = list.filter(x => x.out >= 0), total = ok.reduce((a, x) => a + x.out, 0);
+    return { total: total, avg: ok.length ? Math.round(total / ok.length) : 0, odd: list.length - ok.length,
+      max: ok.reduce((m, x) => x.out > (m ? m.out : -1) ? x : m, null) };
+  }
+  const inferredRow = (x, perWash) => [shiftLabel(x.shift), x.prevReady, x.washes + ' × ' + perWash, x.ready,
+    x.out >= 0 ? '<b>' + fmtN(x.out) + '</b>'
+      : '<span class="badge"><i style="background:var(--warning)">!</i>' + signed(x.out) + ' غير منطقي</span>'];
+
+  function renderInferred() {
+    const list = data.inferred || [];
+    $('inferredBox').classList.toggle('hidden', !list.length);
+    if (!list.length) return;
+    const st = inferredStats(list);
+    $('inferredSum').innerHTML = [
+      ['المجموع المستنتج', fmtN(st.total) + ' بطانية', 'في ' + fmtN(list.length - st.odd) + ' وجبة'],
+      ['متوسط الوجبة', fmtN(st.avg), 'بطانية تقريباً'],
+      ['أعلى وجبة', st.max ? fmtN(st.max.out) : '—', st.max ? shiftLabel(st.max.shift) : ''],
+      ['قيم غير منطقية', fmtN(st.odd), 'الجاهز زاد أكثر من الغسلات']
+    ].map(t => '<div class="tile"><div class="k">' + t[0] + '</div><div class="v">' + t[1] + '</div><div class="d">' + t[2] + '</div></div>').join('');
+    table($('inferred'), ['الوجبة', 'جاهز السابقة', 'الغسلات', 'الجاهز', 'المصروف المستنتج'], list.slice().reverse().map(x => inferredRow(x, data.perWash)));
   }
 
   // رسم البطاقة كرسم أو كجدول حسب زر "جدول"
@@ -788,6 +819,24 @@
       + '</tbody></table>';
   }
 
+  // جدول المصروف المستنتج في التقرير: لكل وجبة في الشهري، ومجموع كل شهر في السنوي
+  function inferredReport(d, yearly) {
+    const list = d.inferred || [];
+    if (!list.length) return '';
+    const st = inferredStats(list);
+    const head = '<div style="margin-top:10px;font-weight:700;color:#1f3a5f">البطانيات المصروفة المستنتجة (التقارير الورقية): '
+      + fmtN(st.total) + ' بطانية، بمتوسط ' + fmtN(st.avg) + ' للوجبة' + (st.odd ? '، و' + fmtN(st.odd) + ' قيم غير منطقية' : '') + '</div>'
+      + '<div class="rs" style="font-size:10.5px;color:#898781">المصروف = جاهز الوجبة السابقة + الغسلات × ' + d.perWash + ' − جاهز هذه الوجبة.</div>';
+    if (yearly) {
+      const by = {};
+      list.filter(x => x.out >= 0).forEach(x => { const m = x.shift.slice(0, 7); by[m] = by[m] || { n:0, t:0 }; by[m].n++; by[m].t += x.out; });
+      return head + rTable(['الشهر', 'الوجبات', 'المصروف المستنتج'],
+        Object.keys(by).sort().map(m => [MONTHS[Number(m.slice(5, 7)) - 1], by[m].n, by[m].t]), ['المجموع', list.length - st.odd, st.total]);
+    }
+    return head + rTable(['الوجبة', 'جاهز السابقة', 'الغسلات', 'الجاهز', 'المصروف المستنتج'],
+      list.map(x => inferredRow(x, d.perWash)), ['المجموع', '', '', '', st.total]);
+  }
+
   function renderReport(d, title) {
     const k = d.kpi, yearly = d.days.length > 62;
     const sumBy = (list, f) => list.reduce((a, x) => a + f(x), 0);
@@ -836,7 +885,7 @@
       + fullDate(d.updated) + ' ' + d.updated.slice(11) + '</div></div>'
 
       + '<section><h3>1. الملخص</h3><div class="rk">' + kp.map(x => '<div><div class="k">' + x[0] + '</div><div class="v">'
-        + (typeof x[1] === 'number' ? fmtN(x[1]) : x[1]) + '</div><div class="d">' + x[2] + '</div></div>').join('') + '</div></section>'
+        + (typeof x[1] === 'string' ? x[1] : fmtN(x[1])) + '</div><div class="d">' + x[2] + '</div></div>').join('') + '</div></section>'
 
       + '<section><h3>2. غسلات البطانيات</h3>'
       + '<div class="legend"><span><i style="background:#2a78d6"></i>صباحية</span><span><i style="background:#eb6834"></i>ليلية</span>'
@@ -865,7 +914,8 @@
       + (diffsTop.length ? '<div style="margin-top:8px">' + rTable(['الوجبة', 'المدوّن', 'المتوقع', 'الفعلي', 'الفرق'],
         diffsTop.map(x => [shiftLabel(x.shift), esc(x.recorder || '—'), x.expected, x.actual, signed(x.diff)])) + '</div>'
         : '<div class="rs" style="margin-top:6px">لا توجد فروق محسوبة خلال الفترة. لا تُحسب الفروق للوجبات المستوردة من التقارير الورقية '
-          + 'لأنها لا تذكر البطانيات الصادرة، وتُحسب للوجبات المسجّلة في التطبيق حين يُسجَّل جرد وجبتين متتاليتين.</div>') + '</section>'
+          + 'لأنها لا تذكر البطانيات الصادرة، وتُحسب للوجبات المسجّلة في التطبيق حين يُسجَّل جرد وجبتين متتاليتين.</div>')
+      + inferredReport(d, yearly) + '</section>'
 
       + '<section><h3>8. انتظام التقارير</h3>' + rTable(['أُرسل', 'وجبة فارغة', 'لم يُرسل', 'نسبة الانتظام'],
         [[cnt('sent'), cnt('empty'), cnt('missing'), rate]])
