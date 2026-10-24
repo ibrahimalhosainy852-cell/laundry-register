@@ -1,9 +1,11 @@
+<!-- مولَّد من Index.html بواسطة build-pages.js — لا تعدّله مباشرة -->
 <!DOCTYPE html>
 <html dir="rtl" lang="ar">
 <head>
+<base target="_top">
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>سجل اللوندري</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1f3a5f">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/favicon-32.png" sizes="32x32">
@@ -11,46 +13,526 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="سجل اللوندري">
 <style>
-  html, body { margin:0; height:100%; background:#fff; font-family:Tahoma, Arial, sans-serif; }
-  iframe { position:fixed; inset:0; width:100%; height:100%; border:0; }
-  #splash { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px;
-    background:#fff; color:#1f3a5f; transition:opacity .3s; z-index:2; }
-  #splash img { width:132px; height:132px; }
-  #splash .t { font-size:20px; font-weight:bold; }
-  #splash .s { font-size:13px; color:#5b6b7c; }
-  #splash a { display:none; margin-top:8px; color:#1f3a5f; font-size:14px; }
-  .bar { width:120px; height:4px; border-radius:2px; background:#e3e8ee; overflow:hidden; }
-  .bar::after { content:''; display:block; width:40%; height:100%; background:#1f3a5f; border-radius:2px; animation:slide 1.1s infinite ease-in-out; }
-  @keyframes slide { from { transform:translateX(160%); } to { transform:translateX(-260%); } }
+  :root { --bg:#f4f6f9; --card:#fff; --ink:#1b2a3a; --muted:#5b6b7c; --brand:#1f3a5f; --line:#e3e8ee; --ok:#1e7d4f; --err:#b3261e; --wa:#1f8f4e; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: Tahoma, Arial, sans-serif; background:var(--bg); color:var(--ink); }
+  header { background:var(--brand); color:#fff; padding:14px 16px; text-align:center; }
+  header .t { font-size:19px; font-weight:bold; }
+  header .s { font-size:13px; opacity:.85; margin-top:4px; }
+  main { max-width:480px; margin:0 auto; padding:16px; }
+  .card { background:var(--card); border-radius:12px; padding:18px; box-shadow:0 1px 4px rgba(0,0,0,.08); margin-bottom:14px; }
+  label { display:block; margin:14px 0 6px; color:var(--muted); font-size:14px; }
+  select, input { width:100%; padding:13px; font-size:18px; border:1px solid #cfd6de; border-radius:10px; background:#fff; font-family:inherit; }
+  button { font-family:inherit; }
+  .btn { display:block; width:100%; margin-top:16px; padding:16px; font-size:18px; font-weight:bold; border:0; border-radius:10px; background:var(--brand); color:#fff; text-align:center; text-decoration:none; }
+  .btn2 { width:100%; margin-top:10px; padding:13px; font-size:16px; border:1px solid var(--brand); border-radius:10px; background:#fff; color:var(--brand); }
+  .wa { background:var(--wa); }
+  .btn:disabled, .wash:disabled { opacity:.6; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+  .tile { padding:18px 8px; font-size:16px; font-weight:bold; border:1px solid var(--line); border-radius:12px; background:#fff; color:var(--ink); min-height:72px; }
+  .wash { padding:14px 4px; border:0; border-radius:12px; background:var(--brand); color:#fff; font-size:15px; }
+  .wash b { display:block; font-size:30px; margin-top:4px; }
+  .msg { margin-top:12px; font-size:15px; min-height:20px; }
+  .err { color:var(--err); } .ok { color:var(--ok); }
+  .big { font-size:21px; font-weight:bold; margin:2px 0 10px; }
+  .muted { color:var(--muted); font-size:14px; }
+  .hint { color:var(--muted); font-size:12px; margin-top:4px; }
+  .field { margin-bottom:14px; }
+  .field label { color:var(--ink); font-weight:bold; font-size:15px; margin-top:0; }
+  .report { white-space:pre-wrap; background:#f8fafc; border:1px solid var(--line); border-radius:10px; padding:14px; font-size:16px; line-height:1.7; font-family:inherit; margin:0; }
+  table { width:100%; border-collapse:collapse; }
+  th, td { padding:8px 4px; border-bottom:1px solid var(--line); text-align:center; font-size:15px; }
+  th { color:var(--muted); font-weight:normal; font-size:13px; }
+  td.n { text-align:right; font-weight:bold; }
+  .qty { padding:11px 6px; text-align:center; font-size:20px; }
+  .hidden { display:none; }
+  header.late { background:#8a5300; }
+  .late-card { border:2px solid #d98e04; background:#fff8e6; }
+  .late-card .big { color:#8a5300; font-size:18px; }
 </style>
 </head>
 <body>
-<div id="splash">
-  <img src="icons/icon-192.png" alt="شعار مستشفى الكفيل التخصصي">
+<header>
   <div class="t">سجل اللوندري</div>
-  <div class="s">مستشفى الكفيل التخصصي</div>
-  <div class="bar"></div>
-  <a id="direct" target="_top">لم تفتح الصفحة؟ اضغط هنا</a>
-</div>
+  <div class="s" id="hdr"></div>
+</header>
+<main>
+
+  <!-- الدخول -->
+  <div id="loginCard" class="card">
+    <div class="big">تسجيل الدخول</div>
+    <label for="name">الاسم</label>
+    <select id="name"><option value="">جارٍ التحميل...</option></select>
+    <label for="pin">الرمز السري</label>
+    <input id="pin" type="password" inputmode="numeric" maxlength="4" autocomplete="off">
+    <button id="loginBtn" class="btn" onclick="doLogin()">دخول</button>
+    <div id="loginMsg" class="msg"></div>
+  </div>
+
+  <!-- الرئيسية -->
+  <div id="homeView" class="hidden">
+    <div id="lateCard" class="card late-card hidden">
+      <div class="big" id="lateTitle"></div>
+      <div class="muted" id="lateText"></div>
+      <button id="lateBtn" class="btn" onclick="toggleLate()"></button>
+    </div>
+    <div class="card">
+      <div class="big">الغسلات <span id="washTotal" class="muted"></span></div>
+      <div class="grid3">
+        <button class="wash" id="w1" onclick="addWash(1)">غسالة 1<b>0</b></button>
+        <button class="wash" id="w2" onclick="addWash(2)">غسالة 2<b>0</b></button>
+        <button class="wash" id="w3" onclick="addWash(3)">غسالة 3<b>0</b></button>
+      </div>
+      <button id="undoBtn" class="btn2 hidden" onclick="undoWash()">تراجع عن آخر غسلة</button>
+      <div id="washMsg" class="msg"></div>
+    </div>
+    <div class="card">
+      <button class="btn" style="margin-top:0" onclick="openDepts()">تسجيل حركة جهة</button>
+      <button class="btn2" onclick="openInv()">الجرد والتسليم</button>
+      <button class="btn2" onclick="openReport()">معاينة التقرير</button>
+      <div id="homeMsg" class="msg"></div>
+    </div>
+    <div class="card">
+      <div class="big">ملخص الوجبة حتى الآن</div>
+      <div id="summary" class="muted">جارٍ التحميل...</div>
+    </div>
+  </div>
+
+  <!-- اختيار الجهة -->
+  <div id="deptView" class="card hidden">
+    <div class="big">اختر الجهة</div>
+    <div id="deptGrid" class="grid"></div>
+    <button class="btn2" onclick="show('homeView')">رجوع</button>
+  </div>
+
+  <!-- إدخال حركة الجهة -->
+  <div id="formView" class="card hidden">
+    <div class="big" id="formTitle"></div>
+    <table>
+      <thead><tr><th>الصنف</th><th>صادر</th><th>وارد</th></tr></thead>
+      <tbody id="formRows"></tbody>
+    </table>
+    <label for="staff">اسم موظف الجهة</label>
+    <input id="staff" type="text" autocomplete="off">
+    <button id="saveBtn" class="btn" onclick="save()">حفظ</button>
+    <button class="btn2" onclick="show('deptView')">رجوع</button>
+    <div id="formMsg" class="msg"></div>
+  </div>
+
+  <!-- الجرد والتسليم -->
+  <div id="invView" class="card hidden">
+    <div class="big">الجرد والتسليم</div>
+    <div class="muted" style="margin-bottom:14px">اكتب ما عددته فعلياً. يمكنك التعديل حتى نهاية الوجبة.</div>
+    <div id="invFields">جارٍ التحميل...</div>
+    <button id="invBtn" class="btn" onclick="saveInv()">حفظ الجرد</button>
+    <button class="btn2" onclick="show('homeView')">رجوع</button>
+    <div id="invMsg" class="msg"></div>
+  </div>
+
+  <!-- معاينة التقرير -->
+  <div id="reportView" class="card hidden">
+    <div class="big">معاينة التقرير</div>
+    <pre id="reportText" class="report">جارٍ التحميل...</pre>
+    <a id="waLink" class="btn wa" href="#" target="_blank" rel="noopener">إرسال عبر واتساب</a>
+    <button class="btn2" onclick="copyReport()">نسخ</button>
+    <button class="btn2" onclick="show('homeView')">رجوع</button>
+    <div id="reportMsg" class="msg"></div>
+  </div>
+
+</main>
 <script>
-  // رابط تطبيق الويب المنشور (عملية النشر الرسمية — لا يتغيّر عند نشر إصدار جديد)
-  const APP = 'https://script.google.com/macros/s/AKfycbyBHtn7_j7wnNjLbM7lLiKFARtroKlrAPymMngOi_X99iVTUM1sBWxqGdqT5goQH6vTTg/exec';
-  const page = new URLSearchParams(location.search).get('page');
-  const url = APP + (page === 'dashboard' ? '?page=dashboard' : '');
-
-  const f = document.createElement('iframe');
-  f.src = url;
-  f.allow = 'clipboard-write';
-  f.title = 'سجل اللوندري';
-  f.onload = () => { const s = document.getElementById('splash'); s.style.opacity = 0; setTimeout(() => s.remove(), 300); };
-  document.body.appendChild(f);
-
-  // إن تأخر التحميل كثيراً نعرض رابطاً مباشراً
-  const a = document.getElementById('direct');
-  a.href = url;
-  setTimeout(() => { if (document.getElementById('splash')) a.style.display = 'block'; }, 12000);
-
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+  // بديل google.script.run: نفس طريقة الاستدعاء، والاتصال مباشر بالخادم
+  (function () {
+    var API = "https://script.google.com/macros/s/AKfycbyM6unb_jjh6mY1ESpx3yqaPVj7m3MFB2s5RbUzf-GV_w72jtoSnTtjd1IugTKw1ZUQPA/exec";
+    function runner() {
+      var ok = function () {}, fail = function () {};
+      var p = new Proxy({}, { get: function (_, fn) {
+        if (fn === 'withSuccessHandler') return function (f) { ok = f; return p; };
+        if (fn === 'withFailureHandler') return function (f) { fail = f; return p; };
+        return function () {
+          var args = Array.prototype.slice.call(arguments);
+          fetch(API, { method: 'POST', credentials: 'omit', redirect: 'follow',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ fn: fn, args: args }) })
+            .then(function (r) { return r.json(); })
+            .then(function (d) { setTimeout(function () { d.ok ? ok(d.result) : fail(new Error(d.error)); }); },
+              function () { fail(new Error('تعذّر الاتصال بالخادم. تحقق من الإنترنت وحاول مجدداً.')); });
+        };
+      } });
+      return p;
+    }
+    window.google = { script: { get run() { return runner(); } } };
+  })();
 </script>
+<script>
+  const $ = id => document.getElementById(id);
+  const VIEWS = ['loginCard', 'homeView', 'deptView', 'formView', 'invView', 'reportView'];
+  let session = null, depts = [], current = null, clientId = '';
+  let lastWash = null, undoTimer = null;
+
+  function show(id) { VIEWS.forEach(v => $(v).classList.toggle('hidden', v !== id)); window.scrollTo(0, 0); }
+  function toLatin(s) { return String(s).replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).trim(); }
+  function newId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+  function errText(e) { return (e && e.message) ? e.message : String(e); }
+  function setMsg(id, text, cls) { $(id).className = 'msg ' + (cls || ''); $(id).textContent = text; }
+  function handleErr(msgId, btnId) {
+    return e => {
+      const t = errText(e);
+      if (t.indexOf('انتهت الجلسة') !== -1) { session = null; show('loginCard'); setMsg('loginMsg', t, 'err'); return; }
+      if (t.indexOf('انتهت مهلة الإدخال المتأخر') !== -1 && session) {
+        google.script.run.withSuccessHandler(applyMode).setLateMode(session.token, false);
+      }
+      setMsg(msgId, t, 'err');
+      if (btnId) $(btnId).disabled = false;
+    };
+  }
+
+  // قائمة الأسماء
+  google.script.run
+    .withSuccessHandler(names => {
+      const s = $('name');
+      s.innerHTML = '';
+      s.add(new Option('اختر اسمك', ''));
+      names.forEach(n => s.add(new Option(n, n)));
+    })
+    .withFailureHandler(handleErr('loginMsg'))
+    .listUsers();
+
+  function doLogin() {
+    const name = $('name').value, pin = toLatin($('pin').value);
+    if (!name || !pin) { setMsg('loginMsg', 'اختر اسمك واكتب الرمز', 'err'); return; }
+    $('loginBtn').disabled = true;
+    setMsg('loginMsg', 'جارٍ التحقق...');
+    google.script.run
+      .withSuccessHandler(r => {
+        session = r;
+        $('pin').value = '';
+        $('loginBtn').disabled = false;
+        renderMode();
+        show('homeView');
+        loadSummary();
+        loadWashes();
+      })
+      .withFailureHandler(handleErr('loginMsg', 'loginBtn'))
+      .login(name, pin);
+  }
+
+  // ===== مهلة الإدخال المتأخر =====
+  function renderMode() {
+    const s = session.shift, g = session.grace;
+    $('hdr').textContent = (session.late ? 'إدخال متأخر — ' : '') + session.name
+      + ' — الوجبة ال' + s.type + ' — ' + s.day + ' ' + s.display;
+    document.querySelector('header').classList.toggle('late', !!session.late);
+    $('lateCard').classList.toggle('hidden', !g);
+    if (!g) return;
+    const name = 'الوجبة ال' + g.type + ' (' + g.day + ' ' + g.display + ')';
+    if (session.late) {
+      $('lateTitle').textContent = 'أنت الآن تُدخل في ' + name;
+      $('lateText').textContent = 'كل ما تحفظه يُضاف إلى الوجبة السابقة حتى الساعة ' + g.until + '، ثم يُرسل تقريرها.';
+      $('lateBtn').textContent = 'العودة إلى الوجبة الحالية';
+    } else {
+      $('lateTitle').textContent = 'نسيت إدخال شيء في ' + name + '؟';
+      $('lateText').textContent = 'يمكنك إكماله حتى الساعة ' + g.until + ' قبل إرسال تقريرها.';
+      $('lateBtn').textContent = 'إدخال متأخر للوجبة السابقة';
+    }
+  }
+
+  function applyMode(r) {
+    session.late = r.late;
+    session.shift = r.shift;
+    session.grace = r.grace;
+    depts = []; // أصناف الجهات تختلف بين الصباحية والليلية
+    renderMode();
+    show('homeView');
+    loadSummary();
+    loadWashes();
+  }
+
+  // فحص كل دقيقة: إن تغيّرت الوجبة أو المهلة نحدّث العنوان دون مقاطعة ما يكتبه المدوّن
+  setInterval(() => {
+    if (!session) return;
+    google.script.run.withSuccessHandler(r => {
+      const changed = r.shift.id !== session.shift.id;
+      const graceChanged = !!r.grace !== !!session.grace || r.late !== !!session.late;
+      if (!changed && !graceChanged) return;
+      session.late = r.late;
+      session.shift = r.shift;
+      session.grace = r.grace;
+      renderMode();
+      if (changed) {
+        depts = [];
+        if (!$('homeView').classList.contains('hidden')) { loadSummary(); loadWashes(); }
+      }
+    }).getMode(session.token);
+  }, 60000);
+
+  function toggleLate() {
+    $('lateBtn').disabled = true;
+    google.script.run
+      .withSuccessHandler(r => {
+        $('lateBtn').disabled = false;
+        applyMode(r);
+        setMsg('homeMsg', r.late ? 'الإدخال الآن للوجبة السابقة' : 'عدت إلى الوجبة الحالية', 'ok');
+      })
+      .withFailureHandler(e => { $('lateBtn').disabled = false; handleErr('homeMsg')(e); })
+      .setLateMode(session.token, !session.late);
+  }
+
+  // ===== الغسلات =====
+  function renderWashes(c) {
+    let total = 0;
+    [1, 2, 3].forEach(w => {
+      const n = Number(c[w] || 0);
+      total += n;
+      $('w' + w).querySelector('b').textContent = n;
+    });
+    $('washTotal').textContent = '— المجموع ' + total;
+  }
+
+  function loadWashes() {
+    google.script.run
+      .withSuccessHandler(renderWashes)
+      .withFailureHandler(handleErr('washMsg'))
+      .getWashCounts(session.token);
+  }
+
+  function setWashButtons(disabled) { [1, 2, 3].forEach(w => $('w' + w).disabled = disabled); }
+
+  function addWash(w) {
+    setWashButtons(true);
+    setMsg('washMsg', 'جارٍ التسجيل...');
+    google.script.run
+      .withSuccessHandler(r => {
+        renderWashes(r.counts);
+        setWashButtons(false);
+        setMsg('washMsg', 'سُجّلت غسلة على الغسالة ' + w, 'ok');
+        lastWash = r.id;
+        $('undoBtn').classList.remove('hidden');
+        clearTimeout(undoTimer);
+        undoTimer = setTimeout(() => { $('undoBtn').classList.add('hidden'); lastWash = null; }, 55000);
+      })
+      .withFailureHandler(e => { setWashButtons(false); handleErr('washMsg')(e); })
+      .addWash(session.token, w, newId());
+  }
+
+  function undoWash() {
+    if (!lastWash) return;
+    $('undoBtn').classList.add('hidden');
+    clearTimeout(undoTimer);
+    google.script.run
+      .withSuccessHandler(c => { renderWashes(c); setMsg('washMsg', 'أُلغيت آخر غسلة', 'ok'); lastWash = null; })
+      .withFailureHandler(handleErr('washMsg'))
+      .undoWash(session.token, lastWash);
+  }
+
+  // ===== الملخص =====
+  function loadSummary() {
+    google.script.run
+      .withSuccessHandler(renderSummary)
+      .withFailureHandler(handleErr('homeMsg'))
+      .getShiftSummary(session.token);
+  }
+
+  function renderSummary(list) {
+    const box = $('summary');
+    if (!list.length) { box.textContent = 'لا توجد حركات في هذه الوجبة بعد.'; return; }
+    const t = document.createElement('table');
+    t.innerHTML = '<thead><tr><th>الجهة</th><th>الصنف</th><th>صادر</th><th>وارد</th></tr></thead>';
+    const b = document.createElement('tbody');
+    list.forEach(x => {
+      const tr = document.createElement('tr');
+      [x.dept, x.item, x.out || '—', x.in || '—'].forEach((v, i) => {
+        const td = document.createElement('td');
+        if (i === 0) td.className = 'n';
+        td.textContent = v;
+        tr.appendChild(td);
+      });
+      b.appendChild(tr);
+    });
+    t.appendChild(b);
+    box.innerHTML = '';
+    box.appendChild(t);
+  }
+
+  // ===== الجهات والحركات =====
+  function openDepts() {
+    show('deptView');
+    if (depts.length) return;
+    $('deptGrid').textContent = 'جارٍ التحميل...';
+    google.script.run
+      .withSuccessHandler(list => {
+        depts = list;
+        const g = $('deptGrid');
+        g.innerHTML = '';
+        list.forEach(d => {
+          const b = document.createElement('button');
+          b.className = 'tile';
+          b.textContent = d.name + (d.code ? ' (' + d.code + ')' : '');
+          b.onclick = () => openForm(d);
+          g.appendChild(b);
+        });
+      })
+      .withFailureHandler(handleErr('homeMsg'))
+      .getDepartments(session.token);
+  }
+
+  function qtyInput(item, type) {
+    const i = document.createElement('input');
+    i.className = 'qty';
+    i.inputMode = 'numeric';
+    i.dataset.item = item;
+    i.dataset.type = type;
+    return i;
+  }
+
+  function openForm(d) {
+    current = d;
+    clientId = newId();
+    $('formTitle').textContent = d.name;
+    const body = $('formRows');
+    body.innerHTML = '';
+    d.items.forEach(it => {
+      const tr = document.createElement('tr');
+      const n = document.createElement('td');
+      n.className = 'n';
+      n.textContent = it.item;
+      tr.appendChild(n);
+      [['صادر', it.out], ['وارد', it.in]].forEach(([type, ok]) => {
+        const td = document.createElement('td');
+        if (ok) td.appendChild(qtyInput(it.item, type)); else td.textContent = '—';
+        tr.appendChild(td);
+      });
+      body.appendChild(tr);
+    });
+    $('staff').value = '';
+    $('saveBtn').disabled = false;
+    setMsg('formMsg', '');
+    show('formView');
+  }
+
+  function save() {
+    const entries = [];
+    let bad = false;
+    document.querySelectorAll('#formRows input').forEach(i => {
+      const v = toLatin(i.value);
+      if (!v) return;
+      if (!/^\d+$/.test(v)) bad = true;
+      entries.push({ item: i.dataset.item, type: i.dataset.type, qty: v });
+    });
+    if (bad) { setMsg('formMsg', 'اكتب أرقاماً فقط', 'err'); return; }
+    if (!entries.length) { setMsg('formMsg', 'لم تكتب أي عدد', 'err'); return; }
+    $('saveBtn').disabled = true;
+    setMsg('formMsg', 'جارٍ الحفظ...');
+    google.script.run
+      .withSuccessHandler(r => {
+        renderSummary(r.summary);
+        show('homeView');
+        setMsg('homeMsg', r.duplicate ? 'هذا الإدخال محفوظ مسبقاً.' : 'تم حفظ ' + r.saved + ' حركة لـ ' + current.name, 'ok');
+      })
+      .withFailureHandler(handleErr('formMsg', 'saveBtn'))
+      .saveMovements(session.token, current.id, entries, $('staff').value, clientId);
+  }
+
+  // ===== الجرد والتسليم =====
+  function renderInv(fields) {
+    const box = $('invFields');
+    box.innerHTML = '';
+    fields.forEach(f => {
+      const wrap = document.createElement('div');
+      wrap.className = 'field';
+      const l = document.createElement('label');
+      l.textContent = f.label;
+      const i = document.createElement('input');
+      i.className = 'qty';
+      i.inputMode = 'numeric';
+      i.dataset.key = f.key;
+      i.value = f.value;
+      wrap.appendChild(l);
+      wrap.appendChild(i);
+      if (f.hint) {
+        const h = document.createElement('div');
+        h.className = 'hint';
+        h.textContent = f.hint;
+        wrap.appendChild(h);
+      }
+      box.appendChild(wrap);
+    });
+  }
+
+  function openInv() {
+    show('invView');
+    setMsg('invMsg', '');
+    $('invBtn').disabled = false;
+    $('invFields').textContent = 'جارٍ التحميل...';
+    google.script.run
+      .withSuccessHandler(renderInv)
+      .withFailureHandler(handleErr('invMsg'))
+      .getInventory(session.token);
+  }
+
+  function saveInv() {
+    const values = {};
+    let bad = false, any = false;
+    document.querySelectorAll('#invFields input').forEach(i => {
+      const v = toLatin(i.value);
+      if (v === '') return;
+      if (!/^\d+$/.test(v)) bad = true;
+      values[i.dataset.key] = v;
+      any = true;
+    });
+    if (bad) { setMsg('invMsg', 'اكتب أرقاماً فقط', 'err'); return; }
+    if (!any) { setMsg('invMsg', 'لم تكتب أي عدد', 'err'); return; }
+    $('invBtn').disabled = true;
+    setMsg('invMsg', 'جارٍ الحفظ...');
+    google.script.run
+      .withSuccessHandler(() => {
+        show('homeView');
+        setMsg('homeMsg', 'تم حفظ الجرد', 'ok');
+      })
+      .withFailureHandler(handleErr('invMsg', 'invBtn'))
+      .saveInventory(session.token, values);
+  }
+
+  // ===== معاينة التقرير =====
+  function openReport() {
+    show('reportView');
+    setMsg('reportMsg', '');
+    $('reportText').textContent = 'جارٍ التحميل...';
+    $('waLink').href = '#';
+    google.script.run
+      .withSuccessHandler(text => {
+        $('reportText').textContent = text;
+        $('waLink').href = 'https://wa.me/?text=' + encodeURIComponent(text);
+      })
+      .withFailureHandler(handleErr('reportMsg'))
+      .previewReport(session.token);
+  }
+
+  function copyReport() {
+    const text = $('reportText').textContent;
+    const done = () => setMsg('reportMsg', 'تم النسخ', 'ok');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text, done));
+    } else {
+      fallbackCopy(text, done);
+    }
+  }
+
+  function fallbackCopy(text, done) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand('copy');
+      done();
+    } catch (e) {
+      setMsg('reportMsg', 'تعذّر النسخ، انسخ النص يدوياً', 'err');
+    }
+    document.body.removeChild(ta);
+  }
+</script>
+<script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});</script>
 </body>
 </html>

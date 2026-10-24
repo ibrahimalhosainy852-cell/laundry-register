@@ -155,6 +155,26 @@ function doGet(e) {
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
+// ===== واجهة الاتصال لتطبيق الهاتف (GitHub Pages) =====
+// تستقبل {fn, args} وترجع {ok, result} أو {ok:false, error}، دون حاجة لحساب Google في المتصفح
+const API = {
+  listUsers, login, getDepartments, saveMovements, getShiftSummary, getWashCounts, addWash, undoWash,
+  getInventory, saveInventory, previewReport, setLateMode, getMode, getDashboard
+};
+
+function doPost(e) {
+  let out;
+  try {
+    const req = JSON.parse(e.postData.contents);
+    const fn = API[req.fn];
+    if (!fn) throw new Error('طلب غير معروف');
+    out = { ok: true, result: fn.apply(null, req.args || []) };
+  } catch (err) {
+    out = { ok: false, error: err.message || String(err) };
+  }
+  return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
+}
+
 function sheet_(name) {
   return SpreadsheetApp.getActive().getSheetByName(name);
 }
