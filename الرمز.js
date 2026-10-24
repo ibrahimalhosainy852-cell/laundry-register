@@ -839,6 +839,9 @@ function autoSend() {
   if (!PropertiesService.getScriptProperties().getProperty(IMPORT_KEY)) {
     try { importOctober(); } catch (e) { console.error('الاستيراد: ' + e.message); }
   }
+  if (!PropertiesService.getScriptProperties().getProperty('REPLACE_23D_DONE')) {
+    try { replaceTestShift(); } catch (e) { console.error('استبدال تجارب 23: ' + e.message); }
+  }
   const sinceStart = sinceShiftStart_(now);
   try { remind_(now, sinceStart); } catch (e) { console.error('التذكير: ' + e.message); }
   if (sinceStart < Number(setting_('دقائق الإرسال بعد نهاية الوجبة', 5))) return;

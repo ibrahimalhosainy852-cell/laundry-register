@@ -164,6 +164,31 @@ function importOctober_() {
   return res;
 }
 
+// مرة واحدة (بطلب المستخدم): حذف إدخالات التجارب في صباحية 23 أكتوبر ثم استيراد الموقف الورقي مكانها
+const REPLACE_SHIFT = '2026-10-23-D';
+function replaceTestShift() {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  const deleted = {};
+  try {
+    [['الحركات', 8], ['الغسلات', 4], ['الجرد', 7]].forEach(([name, col]) => {
+      const sh = sheet_(name);
+      const data = sh.getDataRange().getValues();
+      deleted[name] = 0;
+      for (let r = data.length - 1; r >= 1; r--) {
+        if (data[r][1] === REPLACE_SHIFT && data[r][col] !== IMPORT_TAG) { sh.deleteRow(r + 1); deleted[name]++; }
+      }
+    });
+  } finally {
+    lock.releaseLock();
+  }
+  const result = importOctober(); // يستورد الآن الوجبة لأنها لم تعد تحتوي إدخالاً من النظام
+  result.deletedTest = deleted;
+  PropertiesService.getScriptProperties().setProperty(IMPORT_KEY, JSON.stringify(result));
+  PropertiesService.getScriptProperties().setProperty('REPLACE_23D_DONE', '1');
+  return result;
+}
+
 function importOctoberMenu() {
   const r = importOctober();
   SpreadsheetApp.getUi().alert('الاستيراد: ' + r.users + ' مدوّن، ' + r.shifts + ' وجبة، ' + r.movements + ' حركة، '
