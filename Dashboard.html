@@ -123,6 +123,52 @@
   .mini .tile .v { font-size:22px; }
   .bal { font-weight:700; }
 
+  /* نافذة اختيار التقرير */
+  .overlay { position:fixed; inset:0; background:rgba(0,0,0,.45); display:grid; place-items:center; z-index:20; padding:16px; }
+  .dlg { width:100%; max-width:380px; }
+  .dlg label { display:block; margin:14px 0 6px; color:var(--ink2); }
+  .dlg input, .dlg select { width:100%; padding:10px; border:1px solid var(--axis); border-radius:10px; background:var(--surface); font-size:15px; }
+  .pdf-btn { margin-inline-start:auto; border:0; border-radius:999px; padding:8px 16px; background:var(--brand); color:#fff; font-weight:700; cursor:pointer; }
+
+  /* التقرير: ورقة A4 بألوان فاتحة دائماً */
+  .rtools { max-width:210mm; margin:0 auto 12px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .rtools .note { color:var(--ink2); font-size:12.5px; }
+  .paper {
+    --surface:#fff; --ink:#0b0b0b; --ink2:#52514e; --muted:#898781; --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,.12);
+    --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --wash:transparent;
+    background:#fff; color:#0b0b0b; width:210mm; max-width:100%; margin:0 auto; padding:14mm 14mm 10mm; box-shadow:0 2px 12px rgba(0,0,0,.12);
+    font-size:12.5px; line-height:1.6; -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  .rh { display:flex; align-items:center; gap:14px; border-bottom:3px solid #1f3a5f; padding-bottom:10px; margin-bottom:14px; }
+  .rh img { height:46px; }
+  .rh .rt { font-size:19px; font-weight:700; color:#1f3a5f; }
+  .rh .rs { color:#52514e; font-size:12px; }
+  .rh .rm { margin-inline-start:auto; text-align:left; font-size:11px; color:#52514e; line-height:1.7; }
+  .paper section { margin-bottom:14px; break-inside:avoid; }
+  .paper h3 { font-size:14px; color:#1f3a5f; margin:0 0 8px; padding-inline-start:8px; border-inline-start:4px solid #1f3a5f; }
+  .rk { display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; }
+  .rk > div { border:1px solid #e1e0d9; border-radius:8px; padding:8px 10px; }
+  .rk .k { color:#52514e; font-size:11px; }
+  .rk .v { font-size:19px; font-weight:700; }
+  .rk .d { color:#898781; font-size:10.5px; }
+  .paper table { font-size:11.5px; }
+  .paper th { background:#f1f4f8; color:#1f3a5f; }
+  .paper th, .paper td { padding:5px 6px; border-bottom:1px solid #e1e0d9; }
+  .paper tr { break-inside:avoid; }
+  .paper .two { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .paper .notes { border:1px dashed #c3c2b7; border-radius:8px; min-height:56px; padding:8px; color:#898781; }
+  .sign { display:grid; grid-template-columns:repeat(3, 1fr); gap:14px; margin-top:22px; text-align:center; font-size:12px; }
+  .sign div { margin-top:44px; padding-top:6px; border-top:1px solid #0b0b0b; } /* مساحة التوقيع فوق الخط */
+  .rfoot { margin-top:14px; padding-top:6px; border-top:1px solid #e1e0d9; color:#898781; font-size:10px; text-align:center; }
+
+  @page { size:A4; margin:10mm; }
+  @media print {
+    body { background:#fff; }
+    body > header, #dash, #login, .rtools, #tip, .overlay { display:none !important; }
+    main { padding:0; max-width:none; }
+    .paper { width:auto; box-shadow:none; padding:0; }
+  }
+
   .hidden { display:none !important; }
   @media (max-width: 1000px) {
     .top { grid-template-columns:1fr; }
@@ -171,6 +217,7 @@
       <span class="lbl">من</span><input type="date" id="from">
       <span class="lbl">إلى</span><input type="date" id="to">
       <span class="msg" id="dashMsg" style="margin:0"></span>
+      <button class="pdf-btn" onclick="openDlg()">تقرير PDF</button>
     </div>
 
     <div class="top">
@@ -247,6 +294,29 @@
       <div id="diffs" class="tscroll"></div>
     </div>
   </div>
+</main>
+<!-- التقرير الشهري / السنوي -->
+<div id="repDlg" class="overlay hidden">
+  <div class="card dlg">
+    <h2 style="font-size:17px">إصدار تقرير PDF</h2>
+    <div class="chips" style="margin-top:12px">
+      <button class="chip" data-rt="month" aria-pressed="true">شهري</button>
+      <button class="chip" data-rt="year" aria-pressed="false">سنوي</button>
+    </div>
+    <label id="repMonthWrap">الشهر <input type="month" id="repMonth"></label>
+    <label id="repYearWrap" class="hidden">السنة <select id="repYear"></select></label>
+    <button class="btn" id="repBtn" onclick="makeReport()">إنشاء التقرير</button>
+    <button class="tbtn" style="width:100%;margin-top:8px;padding:9px" onclick="$('repDlg').classList.add('hidden')">إلغاء</button>
+    <div class="msg" id="repMsg"></div>
+  </div>
+</div>
+<main id="reportView" class="hidden">
+  <div class="rtools">
+    <button class="pdf-btn" style="margin:0" onclick="window.print()">حفظ PDF / طباعة</button>
+    <button class="tbtn" onclick="closeReport()">رجوع إلى اللوحة</button>
+    <span class="note">في نافذة الطباعة اختر «حفظ بتنسيق PDF» (Save as PDF).</span>
+  </div>
+  <article class="paper" id="paper"></article>
 </main>
 <div id="tip"></div>
 
@@ -344,10 +414,10 @@
     });
   }
 
-  function columns(el, cats, series) {
+  function columns(el, cats, series, fixedW) {
     el.innerHTML = '';
     if (!cats.length) { el.innerHTML = '<div class="empty">لا توجد بيانات</div>'; return; }
-    const W = el.clientWidth || 600, H = 230, m = { t:12, r:34, b:28, l:6 };
+    const W = fixedW || el.clientWidth || 600, H = 230, m = { t:12, r:34, b:28, l:6 };
     const totals = cats.map((_, i) => series.reduce((a, s) => a + s.values[i], 0));
     const max = niceMax(Math.max.apply(null, totals));
     const pw = W - m.l - m.r, ph = H - m.t - m.b, band = pw / cats.length, bw = Math.max(3, Math.min(24, band * .62));
@@ -600,6 +670,8 @@
   document.addEventListener('click', e => {
     const p = e.target.closest('#filters .chip');
     if (p) { setPreset(p.dataset.p); return; }
+    const rt = e.target.closest('[data-rt]');
+    if (rt) { setRepType(rt.dataset.rt); return; }
     const it = e.target.closest('[data-item]');
     if (it) { item = it.dataset.item; render(); return; }
     const t = e.target.closest('[data-t]');
@@ -610,6 +682,168 @@
   let resizeT = null;
   window.addEventListener('resize', () => { clearTimeout(resizeT); resizeT = setTimeout(render, 150); });
   setInterval(() => { if (token && !document.hidden) load(); }, 5 * 60 * 1000);
+
+  // ===== التقرير الشهري / السنوي (PDF عبر الطباعة) =====
+  const MONTHS = ['كانون الثاني', 'شباط', 'آذار', 'نيسان', 'أيار', 'حزيران', 'تموز', 'آب', 'أيلول', 'تشرين الأول', 'تشرين الثاني', 'كانون الأول'];
+  const LOGO = 'https://ibrahimalhosainy852-cell.github.io/laundry-register/icons/logo-wide.png';
+  let repType = 'month';
+
+  function openDlg() {
+    const today = bagDate(new Date()), y = Number(today.slice(0, 4));
+    if (!$('repMonth').value) $('repMonth').value = today.slice(0, 7);
+    if (!$('repYear').options.length) for (let i = y; i >= y - 5; i--) $('repYear').add(new Option(i, i));
+    $('repMsg').textContent = '';
+    $('repBtn').disabled = false;
+    $('repDlg').classList.remove('hidden');
+  }
+  function setRepType(t) {
+    repType = t;
+    document.querySelectorAll('[data-rt]').forEach(c => c.setAttribute('aria-pressed', c.dataset.rt === t));
+    $('repMonthWrap').classList.toggle('hidden', t !== 'month');
+    $('repYearWrap').classList.toggle('hidden', t !== 'year');
+  }
+
+  function makeReport() {
+    const today = bagDate(new Date());
+    let from, to, title;
+    if (repType === 'month') {
+      const m = $('repMonth').value;
+      if (!/^\d{4}-\d{2}$/.test(m)) { $('repMsg').textContent = 'اختر الشهر'; return; }
+      const y = Number(m.slice(0, 4)), mo = Number(m.slice(5, 7));
+      from = m + '-01';
+      to = m + '-' + String(new Date(Date.UTC(y, mo, 0)).getUTCDate()).padStart(2, '0');
+      title = 'التقرير الشهري — ' + MONTHS[mo - 1] + ' ' + y;
+    } else {
+      const y = $('repYear').value;
+      from = y + '-01-01';
+      to = y + '-12-31';
+      title = 'التقرير السنوي — ' + y;
+    }
+    if (from > today) { $('repMsg').textContent = 'هذه الفترة لم تبدأ بعد'; return; }
+    if (to > today) to = today; // الفترة الجارية: حتى اليوم
+    $('repBtn').disabled = true;
+    $('repMsg').textContent = 'جارٍ تجهيز التقرير...';
+    google.script.run
+      .withSuccessHandler(d => {
+        $('repDlg').classList.add('hidden');
+        $('dash').classList.add('hidden');
+        $('reportView').classList.remove('hidden');
+        renderReport(d, title);
+        window.scrollTo(0, 0);
+        setTimeout(() => window.print(), 700);
+      })
+      .withFailureHandler(e => { $('repBtn').disabled = false; $('repMsg').textContent = (e && e.message) || String(e); })
+      .getDashboard(token, from, to);
+  }
+
+  function closeReport() {
+    $('reportView').classList.add('hidden');
+    $('dash').classList.remove('hidden');
+    render();
+  }
+
+  // 'yyyy-MM-dd' ← 'dd/MM/yyyy' باتجاه ثابت
+  const fullDate = s => '<bdi>' + s.slice(8, 10) + '/' + s.slice(5, 7) + '/' + s.slice(0, 4) + '</bdi>';
+
+  function rTable(head, rows, foot) {
+    return '<table><thead><tr>' + head.map(h => '<th>' + esc(h) + '</th>').join('') + '</tr></thead><tbody>'
+      + rows.map(r => '<tr>' + r.map(v => '<td>' + (typeof v === 'number' ? fmtN(v) : v) + '</td>').join('') + '</tr>').join('')
+      + (foot ? '<tr>' + foot.map(v => '<td><b>' + (typeof v === 'number' ? fmtN(v) : v) + '</b></td>').join('') + '</tr>' : '')
+      + '</tbody></table>';
+  }
+
+  function renderReport(d, title) {
+    const k = d.kpi, yearly = d.days.length > 62;
+    const sumBy = (list, f) => list.reduce((a, x) => a + f(x), 0);
+    const items = ITEMS.map(i => ({ item:i, out:sumBy(d.depts, x => (x.items[i] || {}).out || 0), in:sumBy(d.depts, x => (x.items[i] || {}).in || 0) }));
+    const due = d.reports.filter(r => ['sent', 'empty', 'missing'].indexOf(r.status) !== -1);
+    const cnt = s => due.filter(r => r.status === s).length;
+    const rate = due.length ? Math.round(cnt('sent') / due.length * 100) + '%' : '—';
+    const kp = [
+      ['غسلات البطانيات', k.washes, fmtN(k.washes * d.perWash) + ' بطانية مغسولة'],
+      ['البطانيات الواردة', k.blanketsIn, 'الصادر ' + fmtN(k.blanketsOut)],
+      ['الشراشف الواردة', k.sheetsIn, 'الصادر ' + fmtN(k.sheetsOut)],
+      ['غسلات الشراشف (تقدير)', k.sheetWashesEst, 'كل 60 شرشفاً = غسلة'],
+      ['بدلات العمليات', k.suitsOut, 'صادر إلى صالات العمليات'],
+      ['انتظام التقارير', rate, fmtN(cnt('sent')) + ' من ' + fmtN(due.length) + ' وجبة'],
+      ['المتسخ المتراكم (تقدير)', d.dirty, 'بطانية حتى تاريخ الإصدار'],
+      ['فروق الجرد', d.diffs.filter(x => x.diff !== 0).length, 'وجبة بفرق من ' + fmtN(d.diffs.length)]
+    ];
+
+    // الغسلات: يومياً للشهري، وشهرياً للسنوي
+    let cats, dayV, nightV, washHead;
+    if (yearly) {
+      const by = {};
+      d.days.forEach(x => { const m = x.date.slice(0, 7); by[m] = by[m] || { D:0, N:0 }; by[m].D += x.washD; by[m].N += x.washN; });
+      const ms = Object.keys(by).sort();
+      cats = ms.map(m => MONTHS[Number(m.slice(5, 7)) - 1]);
+      dayV = ms.map(m => by[m].D); nightV = ms.map(m => by[m].N);
+      washHead = 'الشهر';
+    } else {
+      cats = d.days.map(x => dm(x.date));
+      dayV = d.days.map(x => x.washD); nightV = d.days.map(x => x.washN);
+      washHead = 'اليوم';
+    }
+    const busiest = cats.length ? cats[dayV.map((v, i) => v + nightV[i]).reduce((b, v, i, a) => v > a[b] ? i : b, 0)] : '—';
+
+    const deptRows = d.depts.map(x => [esc(x.name)].concat([].concat.apply([], ITEMS.map(i => {
+      const it = x.items[i];
+      return it ? [it.out, it.in] : ['—', '—'];
+    }))));
+    const diffsTop = d.diffs.filter(x => x.diff !== 0).sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff)).slice(0, 12);
+    const missing = d.reports.filter(r => r.status === 'missing' || r.status === 'empty');
+
+    $('paper').innerHTML =
+      '<div class="rh"><img src="' + LOGO + '" alt="مستشفى الكفيل التخصصي"><div><div class="rt">' + esc(title) + '</div>'
+      + '<div class="rs">وحدة اللوندري — سجل المنسوجات الرقمي</div></div>'
+      + '<div class="rm">الفترة: ' + fullDate(d.from) + ' إلى ' + fullDate(d.to) + '<br>تاريخ الإصدار: '
+      + fullDate(d.updated) + ' ' + d.updated.slice(11) + '</div></div>'
+
+      + '<section><h3>1. الملخص</h3><div class="rk">' + kp.map(x => '<div><div class="k">' + x[0] + '</div><div class="v">'
+        + (typeof x[1] === 'number' ? fmtN(x[1]) : x[1]) + '</div><div class="d">' + x[2] + '</div></div>').join('') + '</div></section>'
+
+      + '<section><h3>2. غسلات البطانيات</h3>'
+      + '<div class="legend"><span><i style="background:#2a78d6"></i>صباحية</span><span><i style="background:#eb6834"></i>ليلية</span>'
+      + '<span>أعلى ' + (yearly ? 'شهر' : 'يوم') + ': ' + esc(busiest) + '</span></div>'
+      + '<div class="chart" id="rChart"></div>'
+      + '<div class="two" style="margin-top:10px"><div>' + rTable(['الغسالة', 'الغسلات'], [1, 2, 3].map(w => ['غسالة ' + w, d.washers[w] || 0]), ['المجموع', k.washes])
+      + '</div><div>' + rTable(['المجموعة', 'الغسلات'], Object.keys(d.groups).sort().map(g => [esc(g), d.groups[g]])) + '</div></div></section>'
+
+      + '<section><h3>3. الحركة حسب الصنف</h3>' + rTable(['الصنف', 'الصادر (نظيف)', 'الوارد (متسخ)'],
+        items.map(x => [x.item, x.out, x.in])) + '</section>'
+
+      + '<section><h3>4. الاستهلاك حسب الجهة</h3>' + (deptRows.length
+        ? rTable(['الجهة'].concat([].concat.apply([], ITEMS.map(i => [i + ' ص', i + ' و']))), deptRows)
+        + '<div class="rs" style="font-size:10.5px;color:#898781;margin-top:4px">ص = صادر نظيف إلى الجهة، و = وارد متسخ منها.</div>'
+        : '<div class="rs">لا توجد حركات في هذه الفترة.</div>') + '</section>'
+
+      + '<section class="two"><div><h3>5. رصيد شراشف العنايات</h3>' + rTable(['العناية', 'صادر', 'وارد', 'الرصيد'],
+        d.icu.map(x => [esc(x.name), x.out, x.in, signed(x.balance)]),
+        ['المجموع', sumBy(d.icu, x => x.out), sumBy(d.icu, x => x.in), signed(sumBy(d.icu, x => x.balance))]) + '</div>'
+      + '<div><h3>6. بدلات العمليات</h3>' + rTable(['الصالة', 'صادر', 'وارد', 'وجبات التجهيز'],
+        d.or.map(x => [esc(x.name), x.out, x.in, x.shifts])) + '</div></section>'
+
+      + '<section><h3>7. المخزن وفروق الجرد</h3>' + rTable(['البند', 'آخر جرد', 'الوجبة'],
+        d.store.map(s => [esc(s.label), s.last == null ? '—' : s.last, s.lastShift ? shiftLabel(s.lastShift) : 'لم يُسجَّل']))
+      + (diffsTop.length ? '<div style="margin-top:8px">' + rTable(['الوجبة', 'المدوّن', 'المتوقع', 'الفعلي', 'الفرق'],
+        diffsTop.map(x => [shiftLabel(x.shift), esc(x.recorder || '—'), x.expected, x.actual, signed(x.diff)])) + '</div>'
+        : '<div class="rs" style="margin-top:6px">لا توجد فروق في جرد البطانيات الجاهزة خلال الفترة.</div>') + '</section>'
+
+      + '<section><h3>8. انتظام التقارير</h3>' + rTable(['أُرسل', 'وجبة فارغة', 'لم يُرسل', 'نسبة الانتظام'],
+        [[cnt('sent'), cnt('empty'), cnt('missing'), rate]])
+      + (missing.length ? '<div style="margin-top:6px;font-size:11.5px">الوجبات غير المنتظمة: '
+        + missing.map(r => shiftLabel(r.shift) + ' (' + STATUS[r.status].label + ')').join('، ') + '</div>' : '') + '</section>'
+
+      + '<section><h3>9. ملاحظات</h3><div class="notes">&nbsp;</div></section>'
+      + '<div class="sign"><div>مسؤول الوحدة</div><div>رئيس القسم</div><div>إدارة المستشفى</div></div>'
+      + '<div class="rfoot">صدر آلياً من سجل اللوندري الرقمي — مستشفى الكفيل التخصصي. الأرقام التقديرية محسوبة: الغسلة = '
+      + d.perWash + ' بطانيات، وكل 60 شرشفاً = غسلة.</div>';
+
+    columns($('rChart'), cats, [
+      { name:'صباحية', color:'var(--s1)', values:dayV },
+      { name:'ليلية', color:'var(--s2)', values:nightV }
+    ], 700); // عرض ثابت = عرض صفحة A4 حتى لا يتغيّر بحجم الشاشة
+  }
 
   // ===== الدخول =====
   function enter() {
